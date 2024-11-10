@@ -1,0 +1,82 @@
+<% pageTitle = 'Client Registration' %>
+<div class="card-body">
+  <div class="card card-info card-outline mb-4">
+    <!--begin::Header-->
+    <div class="card-header">
+      <div class="card-title">Client Registration Form</div>
+    </div>
+    <!--end::Header-->
+
+    <!--begin::Form-->
+    <form action="/register/client" method="POST" class="needs-validation" onsubmit="return confirmSubmission();" novalidate>
+      <!--begin::Body-->
+      <div class="card-body">
+        <!--begin::Row-->
+        <div class="row g-3">
+          <!--begin::Col-->
+          <div class="col-md-6">
+            <label for="firstname" class="form-label">First Name</label>
+            <input type="text" class="form-control" id="firstname" name="firstname" required>
+            <div class="invalid-feedback">Please provide a first name.</div>
+          </div>
+          <!--end::Col-->
+          <div class="col-md-6">
+            <label for="lastname" class="form-label">Last Name</label>
+            <input type="text" class="form-control" id="lastname" name="lastname" required>
+            <div class="invalid-feedback">Please provide a last name.</div>
+          </div>
+          <!--end::Col-->
+          <div class="col-md-6">
+            <label for="contact" class="form-label">Contact</label>
+            <input type="text" class="form-control" id="contact" name="contact" required>
+            <div class="invalid-feedback">Please provide a contact number.</div>
+          </div>
+          <!--end::Col-->
+          <div class="col-md-6">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email">
+          </div>
+          <!--end::Col-->
+          <div class="col-12">
+            <label for="address" class="form-label">Address</label>
+            <textarea class="form-control" id="address" name="address" rows="3"></textarea>
+          </div>
+          <!--end::Col-->
+        </div>
+        <!--end::Row-->
+      </div>
+      <!--end::Body-->
+
+      <!--begin::Footer-->
+      <div class="card-footer">
+        <button class="btn btn-info" type="submit">Submit Form</button>
+      </div>
+      <!--end::Footer-->
+    </form>
+    <!--end::Form-->
+
+    <!--begin::JavaScript-->
+    <script>
+      // Confirmation prompt before form submission
+      function confirmSubmission() {
+        return confirm("Are you sure you want to submit the form?");
+      }
+
+      // Bootstrap form validation script
+      (() => {
+        "use strict";
+        const forms = document.querySelectorAll(".needs-validation");
+        Array.from(forms).forEach((form) => {
+          form.addEventListener("submit", (event) => {
+            if (!form.checkValidity()) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+            form.classList.add("was-validated");
+          }, false);
+        });
+      })();
+    </script>
+    <!--end::JavaScript-->
+  </div>
+</div>

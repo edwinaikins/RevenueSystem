@@ -13,11 +13,7 @@ module.exports = function(passport) {
       }
 
       const user = results[0];
-      console.log(user);
-      console.log(password)
-      console.log(user.password)
-      const isMatch = await bcrypt.compare(password, user.password);
-      console.log(isMatch);
+      
       // Compare passwords
       bcrypt.compare(password, user.password, (err, isMatch) => {
         if (err) throw err;

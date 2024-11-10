@@ -71,13 +71,9 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// app.post('/login', passport.authenticate('local', {
-//     successRedirect: '/dashboard',
-//     failureRedirect: '/login',
-//     failureFlash: true // enable if using flash messages
-//   }));
+
 app.post('/login', (req, res, next) => {
-    console.log("Request body:", req.body);
+    
     passport.authenticate('local', (err, user, info) => {
       if (err) {
         console.error("Authentication error:", err); // Log the error to the console
@@ -105,6 +101,24 @@ app.get('/logout', (req, res) => {
       res.redirect('/login');
     });
   });
+app.get("/register/client", (req, res)=>{
+    res.render("clients")
+})
+  app.post("/register/client", async(req, res) => {
+    const { firstname, lastname, contact, email, address } = req.body;
+    try{
+        db.query("INSERT INTO clients (firstname, lastname, contact, email, address) VALUES (?, ?, ?, ?, ?)", [firstname, lastname, contact, email, address], (err, results) =>{
+            if(err){
+                throw err;
+            }
+            res.status(200).send("Client Created Succesfully")
+        })
+    }
+    catch(err){
+        console.error(err);
+        res.status(500).send('Error creating client');
+    }
+  })
   
 
 
