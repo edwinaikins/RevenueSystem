@@ -5,18 +5,12 @@ const conectionDetails = {
     user: process.env.PERSON,
     password: process.env.PASSWORD,
     database: process.env.DATABASE,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
 }
-const db = ()  => {
-    const db = mysql.createConnection(conectionDetails)
 
-    db.connect((err) => {
-        if (err) {
-          console.error('Database connection failed:', err.stack);
-          return;
-        }
-        console.log('Connected to MySQL database.');
-      });
+    const db = mysql.createPool(conectionDetails)
 
-    return db;
-}
+    
 module.exports = db;
