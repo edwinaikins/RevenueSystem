@@ -1,14 +1,17 @@
 const express = require("express");
 const session = require("express-session")
 const path = require("path");
-const PORT = process.env.PORT || 3000;
+require("dotenv").config();
+const PORT = process.env.PORT || 3002;
+console.log(process.env.PORT);
 const expressLayouts = require('express-ejs-layouts');
 const passport = require("passport");
 require("./config/passport")(passport);
 const flash = require("connect-flash");
 const errorHandler = require("./middleware/errorHandler");
-const userRoute = require("./routes/userRoute")
-const clientRoute = require("./routes/clientRoute")
+const userRoute = require("./routes/userRoute");
+const clientRoute = require("./routes/clientRoute");
+const businessRoute = require("./routes/businessRoute");
 const app = express();
 
 app.use(expressLayouts);
@@ -33,6 +36,7 @@ app.set('layout', 'layouts/layout');
 
 app.use("/user", userRoute);
 app.use("/client", clientRoute);
+app.use("/business", businessRoute);
 
 
   

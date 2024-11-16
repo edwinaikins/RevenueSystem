@@ -1,0 +1,189 @@
+<% pageTitle = 'Business || Property || Signage  Registration' %>
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Registration Portal</h2>
+    
+    <!-- Registration Buttons in AdminLTE Card -->
+    <div class="card card-primary card-outline">
+        <div class="card-body text-center">
+            <button class="btn btn-primary btn-lg m-3" data-bs-toggle="modal" data-bs-target="#businessRegistrationModal">
+                <i class="fas fa-briefcase"></i> Business Registration
+            </button>
+            <button class="btn btn-success btn-lg m-3" data-bs-toggle="modal" data-bs-target="#propertyRegistrationModal">
+                <i class="fas fa-building"></i> Property Registration
+            </button>
+            <button class="btn btn-info btn-lg m-3" data-bs-toggle="modal" data-bs-target="#signageRegistrationModal">
+                <i class="fas fa-sign"></i> Signage Registration
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Business Registration Modal -->
+<div class="modal fade" id="businessRegistrationModal" tabindex="-1" aria-labelledby="businessRegistrationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="businessRegistrationForm" method="POST" action="/register/business">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="businessRegistrationModalLabel">Business Registration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Client ID (Pre-populated, Read-only) -->
+                    <div class="form-group">
+                        <label for="clientId">Client ID</label>
+                        <input type="text" class="form-control" id="clientId" name="client_id" value="<!-- Pre-populate with client ID here -->" readonly>
+                    </div>
+                    
+                    <!-- Fee Fixing ID (Dropdown from DB) -->
+                    <div class="form-group">
+                        <label for="feeFixingId">Fee Fixing ID</label>
+                        <select class="form-control" id="feeFixingId" name="fee_fixing_id" required>
+                            <% feeFixings.forEach(fee => { %>
+                                <option value="<%= fee.id %>"><%= fee.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+
+                    <!-- Business Name -->
+                    <div class="form-group">
+                        <label for="businessName">Business Name</label>
+                        <input type="text" class="form-control" id="businessName" name="business_name" required>
+                    </div>
+
+                    <!-- Business Contact -->
+                    <div class="form-group">
+                        <label for="businessContact">Business Contact</label>
+                        <input type="tel" class="form-control" id="businessContact" name="business_contact" pattern="^(\+?\d{1,4}[-.\s]?|)\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$" required>
+                        <small class="form-text text-muted">Enter a valid phone number</small>
+                    </div>
+
+                    <!-- Business Activity -->
+                    <div class="form-group">
+                        <label for="businessActivity">Business Activity</label>
+                        <input type="text" class="form-control" id="businessActivity" name="business_activity" required>
+                    </div>
+
+                    <!-- Business Structure -->
+                    <div class="form-group">
+                        <label for="businessStructure">Business Structure</label>
+                        <input type="text" class="form-control" id="businessStructure" name="business_structure" required>
+                    </div>
+
+                    <!-- Business Size -->
+                    <div class="form-group">
+                        <label for="businessSize">Business Size</label>
+                        <input type="text" class="form-control" id="businessSize" name="business_size" required>
+                    </div>
+
+                    <!-- Business Type ID (Dropdown from DB) -->
+                    <div class="form-group">
+                        <label for="businessTypeId">Business Type</label>
+                        <select class="form-control" id="businessTypeId" name="business_type_id" required>
+                            <% businessTypes.forEach(type => { %>
+                                <option value="<%= type.id %>"><%= type.type %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <input type="text" class="form-control" id="address" name="address" required>
+                    </div>
+
+                    <!-- Location ID (Dropdown from DB) -->
+                    <div class="form-group">
+                        <label for="locationId">Location</label>
+                        <select class="form-control" id="locationId" name="location_id" required>
+                            <% locations.forEach(loc => { %>
+                                <option value="<%= loc.id %>"><%= loc.location %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+
+                    <!-- Digital Address -->
+                    <div class="form-group">
+                        <label for="digitalAddress">Digital Address</label>
+                        <input type="text" class="form-control" id="digitalAddress" name="digital_address" required>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Register Business</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Property Registration Modal -->
+<div class="modal fade" id="propertyRegistrationModal" tabindex="-1" aria-labelledby="propertyRegistrationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="propertyRegistrationForm" method="POST" action="/register/property">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="propertyRegistrationModalLabel">Property Registration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="propertyName">Property Name</label>
+                        <input type="text" class="form-control" id="propertyName" name="propertyName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="propertyOwner">Owner Name</label>
+                        <input type="text" class="form-control" id="propertyOwner" name="propertyOwner" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="propertyLocation">Location</label>
+                        <input type="text" class="form-control" id="propertyLocation" name="propertyLocation" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Register Property</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Signage Registration Modal -->
+<div class="modal fade" id="signageRegistrationModal" tabindex="-1" aria-labelledby="signageRegistrationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="signageRegistrationForm" method="POST" action="/register/signage">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="signageRegistrationModalLabel">Signage Registration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="signageName">Signage Name</label>
+                        <input type="text" class="form-control" id="signageName" name="signageName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signageLocation">Location</label>
+                        <input type="text" class="form-control" id="signageLocation" name="signageLocation" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signageOwner">Owner Name</label>
+                        <input type="text" class="form-control" id="signageOwner" name="signageOwner" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">Register Signage</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Required Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-alpha.2/dist/js/adminlte.min.js"></script>
