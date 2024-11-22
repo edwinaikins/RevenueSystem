@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings</title>
+  <!-- AdminLTE Styles -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+</head>
+<body class="hold-transition sidebar-mini">
+<div class="wrapper">
+  <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+      </li>
+    </ul>
+  </nav>
+  <!-- Sidebar -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a href="#" class="brand-link">
+      <span class="brand-text font-weight-light">Revenue Management</span>
+    </a>
+    <div class="sidebar">
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" role="menu">
+          <li class="nav-item">
+            <a href="#" class="nav-link active">
+              <i class="nav-icon fas fa-cogs"></i>
+              <p>Settings</p>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+  <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+    <!-- Sidebar Brand -->
+    <div class="sidebar-brand">
+        <a href="/" class="brand-link">
+            <img src="/dist/assets/img/AdminLTELogo.png" alt="NAMA Logo" class="brand-image opacity-75 shadow">
+            <span class="brand-text fw-light">RMS</span>
+        </a>
+    </div>
+  
+    <!-- Sidebar Menu -->
+    <div class="sidebar-wrapper">
+        <nav class="mt-2">
+            <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <a href="/user/dashboard" class="nav-link active">
+                        <i class="nav-icon bi bi-speedometer"></i>
+                        <p>Dashboard</p>
+                    </a>
+                </li>
+  
+                <!-- Clients -->
+                <li class="nav-item">
+                    <a href="/client/getall" class="nav-link">
+                        <i class="nav-icon bi bi-people"></i>
+                        <p>Clients</p>
+                    </a>
+                </li>
+  
+                <!-- Grouped: Businesses, Properties, Signages -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon bi bi-collection"></i>
+                        <p>
+                            Client Assets
+                            <i class="nav-arrow bi bi-chevron-right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item"><a href="/businesses" class="nav-link">Businesses</a></li>
+                        <li class="nav-item"><a href="/properties" class="nav-link">Properties</a></li>
+                        <li class="nav-item"><a href="/signages" class="nav-link">Signages</a></li>
+                    </ul>
+                </li>
+  
+                <!-- Billing -->
+                <li class="nav-item">
+                    <a href="/billing" class="nav-link">
+                        <i class="nav-icon bi bi-receipt"></i>
+                        <p>Billing</p>
+                    </a>
+                </li>
+  
+                <!-- Payment -->
+                <li class="nav-item">
+                    <a href="/payment" class="nav-link">
+                        <i class="nav-icon bi bi-credit-card"></i>
+                        <p>Payment</p>
+                    </a>
+                </li>
+  
+                <!-- Reports -->
+                <li class="nav-item">
+                    <a href="/reports" class="nav-link">
+                        <i class="nav-icon bi bi-graph-up"></i>
+                        <p>Reports</p>
+                    </a>
+                </li>
+  
+                <!-- Settings -->
+                <li class="nav-item">
+                    <a href="/settings" class="nav-link">
+                        <i class="nav-icon bi bi-gear"></i>
+                        <p>Settings</p>
+                    </a>
+                </li>
+  
+                <!-- User Management -->
+                <li class="nav-item">
+                    <a href="/user/user-management" class="nav-link">
+                        <i class="nav-icon bi bi-person-badge"></i>
+                        <p>User Management</p>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+  </aside>
+  
+  <!-- Content Wrapper -->
+  <div class="content-wrapper">
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Settings</h1>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="content">
+      <div class="container-fluid">
+        <!-- Business Type -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Business Type</h3>
+            <button class="btn btn-primary btn-sm float-right" data-toggle="modal" data-target="#businessTypeModal">Add Business Type</button>
+          </div>
+          <div class="card-body">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Type</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="businessTypeTable">
+                <% if (businessTypes.length > 0) { %>
+                  <% businessTypes.forEach((type, index) => { %>
+                    <tr>
+                      <td><%= index + 1 %></td>
+                      <td><%= type.business_type %></td>
+                      <td>
+                        <button class="btn btn-sm btn-warning">Edit</button>
+                        <button class="btn btn-sm btn-danger">Delete</button>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="3" class="text-center">No Business Types Found</td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Location -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Location</h3>
+            <button class="btn btn-primary btn-sm float-right" data-toggle="modal" data-target="#locationModal">Add Location</button>
+          </div>
+          <div class="card-body">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Location</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="locationTable">
+                <% if (locations.length > 0) { %>
+                  <% locations.forEach((location, index) => { %>
+                    <tr>
+                      <td><%= index + 1 %></td>
+                      <td><%= location.name %></td>
+                      <td>
+                        <button class="btn btn-sm btn-warning">Edit</button>
+                        <button class="btn btn-sm btn-danger">Delete</button>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="3" class="text-center">No Locations Found</td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Fee Fixing -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Fee Fixing</h3>
+            <button class="btn btn-primary btn-sm float-right" data-toggle="modal" data-target="#feeFixingModal">Add Fee</button>
+          </div>
+          <div class="card-body">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Fee Name</th>
+                  <th>Amount</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="feeFixingTable">
+                <% if (feeFixings.length > 0) { %>
+                  <% feeFixings.forEach((fee, index) => { %>
+                    <tr>
+                      <td><%= index + 1 %></td>
+                      <td><%= fee.name %></td>
+                      <td><%= fee.amount %></td>
+                      <td>
+                        <button class="btn btn-sm btn-warning">Edit</button>
+                        <button class="btn btn-sm btn-danger">Delete</button>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="4" class="text-center">No Fees Found</td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- Modals -->
+  <!-- Business Type Modal -->
+  <div class="modal fade" id="businessTypeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="businessTypeForm" action="/settings/addBusinessType" method="POST">
+          <div class="modal-header">
+            <h5 class="modal-title">Add Business Type</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="businessTypeName">Type Name</label>
+              <input type="text" id="businessTypeName" name="businessType" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- Other Modals for Location and Fee Fixing -->
+  <!-- Add similar modal structure for Locations and Fees -->
+</div>
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+</body>
+</html>
