@@ -1,0 +1,148 @@
+<% pageTitle = 'Property Fee Fixing' %>
+<div class="content-wrapper">
+    <!-- Main content -->
+    <div class="app-content">
+        <div class="container-fluid">
+            <!-- Client Information Card -->
+            <div class="card card-primary card-outline mt-5">
+                <div class="card-header">
+                    <h5 class="card-title">Property Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Property Id:</strong> <%= property[0].property_id %></p>
+                            <p><strong>House Number:</strong> <%= property[0].house_number %></p>
+                            <p><strong>Digital Address</strong> <%= property[0].digital_address %></p>
+                            <p><strong>Property Type</strong> <%= property[0].division %></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Fee Fixing Category:</strong> <%= property[0].category %></p>
+                            <p><strong>Amount:</strong> <%= property[0].amount %></p>
+                            <p><strong>Linked Status:</strong> 
+                                <% if (property[0].category === null) { %>
+                                  <span style="color: red; font-weight: bold;">Unlinked</span>
+                                <% } else { %>
+                                  <span style="color: green; font-weight: bold;">Linked</span>
+                                <% } %></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form to Link Business to Fee Fixing -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3 class="card-title">Link Property to Fee Fixing</h3>
+                </div>
+                <div class="card-body">
+                    <form id="linkPropertyForm">
+                        <div class="form-group">
+                            <label for="propertyType">Property Type</label>
+                            <input type="text" id="propertyType" class="form-control" value="<%= property[0].division %>" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="feeFixingCategory">Fee Fixing Category</label>
+                            <select id="feeFixingCategory" class="form-control" required>
+                                <!-- Options populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="amount">Amount</label>
+                            <input type="text" id="amount" class="form-control" value="" readonly>
+                        </div>
+                        <button type="button" id="linkPropertyBtn" class="btn btn-success" disabled>Link</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// Wait for the DOM to fully load
+document.addEventListener('DOMContentLoaded', function () {
+    const feeFixingCategory = document.getElementById('feeFixingCategory');
+    const amountField = document.getElementById('amount');
+    const linkBusinessBtn = document.getElementById('linkPropertyBtn');
+    const entity_type_id = "<%=property[0].entity_type_id %>"; // Dynamic entity type ID
+    const propertyId = "<%=property[0].property_id %>"
+
+    // console.log('Business Type ID:', entity_type_id);
+
+    // Fetch Fee Fixing Categories from the Server
+    async function fetchFeeFixingCategories() {
+        try {
+            const response = await fetch(`/property/feefixingWithPropertyType/${entity_type_id}`);
+            if (!response.ok) throw new Error('Failed to fetch categories');
+
+            const categories = await response.json();
+
+            feeFixingCategory.innerHTML = '<option value="">Select Category</option>'; // Clear previous options
+            categories.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.fee_fixing_id;
+                option.textContent = category.category;
+                option.dataset.amount = category.amount; // Store amount in data attribute
+                feeFixingCategory.appendChild(option);
+            });
+
+            // Enable the "Link" button once categories are loaded
+            linkBusinessBtn.disabled = false;
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+            alert(`Error loading fee fixing categories: ${error.message}`);
+        }
+    }
+
+    // Update the amount dynamically
+    feeFixingCategory.addEventListener('change', function () {
+        const selectedOption = feeFixingCategory.options[feeFixingCategory.selectedIndex];
+        amountField.value = selectedOption?.dataset?.amount || '';
+    });
+
+    // Handle Form Submission
+    linkBusinessBtn.addEventListener('click', async function () {
+        const selectedCategoryId = feeFixingCategory.value;
+
+        if (!selectedCategoryId) {
+            alert('Please select a fee-fixing category');
+            return;
+        }
+
+        const payload = {
+            fee_fixing_id: selectedCategoryId,
+        };
+
+        //console.log('Payload:', payload);
+
+        // Disable button while processing
+        linkBusinessBtn.textContent = 'Linking...';
+        linkBusinessBtn.disabled = true;
+
+        try {
+            const response = await fetch(`/property/feefixing/${propertyId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) throw new Error('Failed to link Property');
+            const result = await response.json();
+
+            alert(result.message || 'Property linked successfully.');
+            location.reload(); // Reload the page or redirect as needed
+        } catch (error) {
+            console.error('Error linking property:', error);
+            alert(`Error linking property: ${error.message}`);
+        } finally {
+            linkBusinessBtn.textContent = 'Link Property';
+            linkBusinessBtn.disabled = false;
+        }
+    });
+
+    // Initialize Fee Fixing Categories
+    fetchFeeFixingCategories();
+});
+</script>

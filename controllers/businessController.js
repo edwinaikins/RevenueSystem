@@ -14,7 +14,7 @@ exports.showRegistration = async (req, res) => {
 };
 
 exports.registerBusiness = async (req, res) => {
-    const { client_id, business_name, business_contact, business_activity, business_structure, business_size, business_type_id, address, location_id, digital_address } = req.body;
+    const { client_id, business_name, business_contact, business_activity, business_structure, business_size, entity_type_id, address, location_id, digital_address } = req.body;
 
     try {
         // Step 1: Get the latest business_id
@@ -27,10 +27,11 @@ exports.registerBusiness = async (req, res) => {
 
         // Step 3: Insert the new business
         await db.query(
-            "INSERT INTO businesses (client_id, business_id, business_name, business_contact, business_activity, business_structure, business_size, business_type_id, address, location_id, digital_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [client_id, newBusinessId, business_name, business_contact, business_activity, business_structure, business_size, business_type_id, address, location_id, digital_address]
+            "INSERT INTO businesses (client_id, business_id, business_name, business_contact, business_activity, business_structure, business_size, entity_type_id, address, location_id, digital_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [client_id, newBusinessId, business_name, business_contact, business_activity, business_structure, business_size, entity_type_id, address, location_id, digital_address]
         );
-        res.status(200).json({ redirectUrl: `/client/clientDetails/${client_id}` });
+        res.send({msg: "Business registered successfully"})
+        //res.status(200).json({ redirectUrl: `/client/clientDetails/${client_id}` });
 
 
     } catch (error) {
@@ -41,12 +42,12 @@ exports.registerBusiness = async (req, res) => {
 
 exports.updateBusiness = async (req, res) => {
     const businessId = req.params.id;
-    const { business_name, business_contact, business_activity, business_structure, business_size, business_type_id, address, location_id, digital_address } = req.body;
+    const { business_name, business_contact, business_activity, business_structure, business_size, entity_type_id, address, location_id, digital_address } = req.body;
 
     try {
         const [result] = await db.query(
-            'UPDATE businesses SET business_name = ?, business_contact = ?, business_activity = ?, business_structure = ?, business_size = ?, business_type_id = ?, address = ?, location_id = ?, digital_address = ? WHERE id = ?',
-            [business_name, business_contact, business_activity, business_structure, business_size, business_type_id, address, location_id, digital_address, businessId]
+            'UPDATE businesses SET business_name = ?, business_contact = ?, business_activity = ?, business_structure = ?, business_size = ?, entity_type_id = ?, address = ?, location_id = ?, digital_address = ? WHERE id = ?',
+            [business_name, business_contact, business_activity, business_structure, business_size, entity_type_id, address, location_id, digital_address, businessId]
         );
 
         if (result.affectedRows === 0) {
@@ -97,7 +98,7 @@ exports.showBusinesses = async (req, res) => {
             `SELECT *
             FROM businesses
             LEFT JOIN locations ON businesses.location_id = locations.location_id
-            LEFT JOIN business_types ON businesses.business_type_id = business_types.business_type_id
+            LEFT JOIN entity_type ON businesses.entity_type_id = entity_type.entity_type_id
             LIMIT ? OFFSET ?`,
             [itemsPerPage, offset]
         );
@@ -124,7 +125,7 @@ exports.showBusinesses = async (req, res) => {
             const [businesses] = await db.query(
               `SELECT * FROM businesses
                 LEFT JOIN locations ON businesses.location_id = locations.location_id
-                 LEFT JOIN business_types ON businesses.business_type_id = business_types.business_type_id
+                 LEFT JOIN entity_type ON businesses.entity_type_id = entity_type.entity_type_id
                 WHERE business_name LIKE ? OR business_contact LIKE ? OR client_id LIKE ? 
                 LIMIT ? OFFSET ?`,
                 [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`, limit, offset]
@@ -151,3 +152,77 @@ exports.showBusinesses = async (req, res) => {
         }
     };
     
+    exports.feeFixing = async (req, res) => {
+        
+        const businessId = req.params.id;
+        const { fee_fixing_id } = req.body;
+    
+        try{
+        const [result] = await db.query(`UPDATE businesses SET fee_fixing_id = ? WHERE business_id = ?`, [fee_fixing_id, businessId])
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send("Business not found");
+        }
+
+        res.json({msg:"Business updated successfully"});
+    }
+    catch(error){
+        console.error("Error",error)
+    }
+    }
+
+    exports.getFeeFixing = async (req, res) => {
+        
+        const feeFixingId = req.params.id;
+
+        try{
+        const [categories] = await db.query(`SELECT * FROM business_fee_fixings WHERE business_fee_fixing_id = ?`, [feeFixingId])
+
+        if (categories.affectedRows === 0) {
+            return res.status(404).send("FeeFixing not found");
+        }
+
+        res.json({categories});
+    }
+    catch(error){
+        console.error("Error",error)
+    }
+    }
+
+    exports.getBusinessWithFeeFixing = async(req, res) => {
+        const businessId = req.params.id;
+        try{
+            const query = `
+                SELECT businesses.business_id, businesses.business_name, businesses.business_contact, businesses.business_activity, businesses.business_structure, businesses.business_size, entity_type.entity_type_id, entity_type.division, fee_fixing.category, fee_fixing.amount, locations.location
+                    FROM businesses
+                    LEFT JOIN entity_type ON businesses.entity_type_id = entity_type.entity_type_id
+                    LEFT JOIN fee_fixing ON businesses.fee_fixing_id = fee_fixing.fee_fixing_id
+                    LEFT JOIN locations ON businesses.location_id = locations.location_id
+                    WHERE client_id = ?
+            `
+            const [business] = await db.query(query, [businessId])
+        
+           res.render("businessFeefixing",{business})
+        }catch(error){
+            console.error(error)
+        }
+    
+    }
+
+    exports.getFeeFixingWithBusinessType = async (req, res) => {
+        
+        const entity_type_id = req.params.id;
+
+        try{
+        const [categories] = await db.query(`SELECT * FROM fee_fixing WHERE entity_type_id = ?`, [entity_type_id])
+
+        if (categories.affectedRows === 0) {
+            return res.status(404).send("FeeFixing not found");
+        }
+
+        res.json({categories});
+    }
+    catch(error){
+        console.error("Error",error)
+    }
+    }

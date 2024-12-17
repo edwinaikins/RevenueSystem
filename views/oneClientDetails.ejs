@@ -241,7 +241,7 @@
                             </thead>
                             <tbody>
                                 <% businesses.forEach((business, index) => { %>
-                                    <tr data-id="<%= business.id %>" data-business-type-id="<%= business.business_type_id %>"
+                                    <tr data-id="<%= business.id %>" data-business-type-id="<%= business.entity_type_id %>"
                                         data-location-id="<%= business.location_id %>">
                                         <td><%= index + 1 %></td>
                                         <td><%= business.business_name %></td>
@@ -249,13 +249,14 @@
                                         <td><%= business.business_activity %></td>
                                         <td><%= business.business_structure %></td>
                                         <td><%= business.business_size %></td>
-                                        <td><%= business.business_type %></td>
+                                        <td><%= business.division %></td>
                                         <td><%= business.address %></td>
                                         <td><%= business.location %></td>
                                         <td><%= business.digital_address %></td>
                                         <td>
                                             <button class="btn btn-sm btn-info">Edit</button>
                                             <button class="btn btn-sm btn-danger">Delete</button>
+                                            <button class="btn btn-sm btn-secondary">Fee Fixing</button>
                                         </td>
                                     </tr>
                                 <% }); %>
@@ -284,16 +285,17 @@
                             </thead>
                             <tbody>
                                 <% properties.forEach((property, index) => { %>
-                                    <tr data-id="<%= property.id %>" data-property-type-id="<%= property.property_type_id %>"
+                                    <tr data-id="<%= property.id %>" data-property-type-id="<%= property.entity_type_id %>"
                                         data-location-id="<%= property.location_id %>">
                                         <td><%= index + 1 %></td>
                                         <td><%= property.house_number %></td>
                                         <td><%= property.digital_address %></td>
                                         <td><%= property.location %></td>
-                                        <td><%= property.property_type %></td>
+                                        <td><%= property.division %></td>
                                         <td>
                                             <button class="btn btn-sm btn-info">Edit</button>
                                             <button class="btn btn-sm btn-danger">Delete</button>
+                                            <button class="btn btn-sm btn-secondary" onclick="window.location.href='/user/dashboard';">Fee Fixing</button>
                                         </td>
                                     </tr>
                                 <% }); %>
@@ -389,11 +391,11 @@
                         <div class="row mb-3">
                             <!-- Business Type ID -->
                             <div class="col-md-6">
-                                <label for="businessTypeId" class="form-label">Business Type</label>
-                                <select class="form-control" id="businessTypeId" name="business_type_id" required>
+                                <label for="entityTypeId" class="form-label">Business Type</label>
+                                <select class="form-control" id="entityTypeId" name="entity_type_id" required>
                                     <option value="" disabled selected>Select a Business Type</option>
-                                    <% businessTypes.forEach(type => { %>
-                                        <option value="<%= type.business_type_id %>"><%= type.business_type %></option>
+                                    <% entity_type.forEach(type => { %>
+                                        <option value="<%= type.entity_type_id %>"><%= type.division %></option>
                                     <% }) %>
                                 </select>
                             </div>
@@ -486,11 +488,11 @@
 
                             <!-- Property Description -->
                             <div class="col-md-6">
-                                <label for="propertyDescription" class="form-label">Property Type</label>
-                                <select class="form-control" id="property_type_id" name="property_type_id" required>
+                                <label for="property_type_id" class="form-label">Property Type</label>
+                                <select class="form-control" id="entity_type_id" name="entity_type_id" required>
                                     <option value="" disabled selected>Select Property Type</option>
-                                    <% property_types.forEach(propertyType => { %>
-                                        <option value="<%= propertyType.property_type_id %>"><%= propertyType.property_type %></option>
+                                    <% entity_type.forEach(type => { %>
+                                        <option value="<%= type.entity_type_id %>"><%= type.division %></option>
                                     <% }); %>
                                 </select>
                             </div>
@@ -565,7 +567,7 @@
                 document.getElementById("businessActivity").value = row.children[3].textContent.trim();
                 document.getElementById("address").value = row.children[7].textContent.trim();
                 document.getElementById("digitalAddress").value = row.children[9].textContent.trim();
-                document.getElementById("businessTypeId").value = row.getAttribute("data-business-type-id") || "";
+                document.getElementById("entityTypeId").value = row.getAttribute("data-business-type-id") || "";
                 document.getElementById("locationId").value = row.getAttribute("data-location-id") || "";
         
                 // Add the business ID to the form for editing
@@ -609,7 +611,7 @@
                         row.children[5].textContent = updatedBusiness.business_size;
                         row.children[8].textContent = updatedBusiness.location;
                         row.children[3].textContent = updatedBusiness.business_activity;
-                        row.children[6].textContent = updatedBusiness.business_type;
+                        row.children[6].textContent = updatedBusiness.division;
                         row.children[7].textContent = updatedBusiness.address;
                         row.children[9].textContent = updatedBusiness.digital_address;
 
@@ -623,7 +625,7 @@
                                 <td>${updatedBusiness.business_activity}</td>
                                 <td>${updatedBusiness.business_structure}</td>
                                 <td>${updatedBusiness.location}</td>
-                                <td>${updatedBusiness.business_type}</td>
+                                <td>${updatedBusiness.division}</td>
                                 <td>${updatedBusiness.address}</td>
                                 <td>${updatedBusiness.location}</td>
                                 <td>${updatedBusiness.digital_address}</td>
@@ -671,7 +673,7 @@
             if (event.target.classList.contains("btn-danger")) {
                 const row = event.target.closest("tr");
                 const propertyId = row.getAttribute("data-id");
-                console.log({propertyID:propertyId})
+    
                 if (!propertyId) {
                     alert("Invalid property ID. Please try again.");
                     return;
@@ -705,8 +707,9 @@
                 document.getElementById("houseNumber").value = row.children[1]?.textContent.trim();
                 document.getElementById("propertyDigitalAddress").value = row.children[2]?.textContent.trim();
                 document.getElementById("propertyLocationId").value = row.getAttribute("data-location-id") || "";
-                document.getElementById("property_type_id").value = row.getAttribute("data-property-type-id") || "";
-                
+                document.getElementById("entity_type_id").value = row.getAttribute("data-property-type-id") || "";
+                console.log(document.getElementById("entity_type_id").value)
+                console.log(document.getElementById("propertyLocationId").value )
 
                 // Add the property ID to the form for editing
                 propertyForm.dataset.id = row.getAttribute("data-id");
@@ -746,7 +749,7 @@
                         row.children[1].textContent = updatedProperty.house_number;
                         row.children[2].textContent = updatedProperty.digital_address;
                         row.children[3].textContent = updatedProperty.location;
-                        row.children[4].textContent = updatedProperty.property_type;
+                        row.children[4].textContent = updatedProperty.division;
                     } else {
                         // Add new row for a new property
                         const newRow = `
@@ -755,7 +758,7 @@
                                 <td>${updatedProperty.house_number}</td>
                                 <td>${updatedProperty.digital_address}</td>
                                 <td>${updatedProperty.location}</td>
-                                <td>${updatedProperty.property_type}</td>
+                                <td>${updatedProperty.division}</td>
                                 <td>
                                     <button class="btn btn-sm btn-info">Edit</button>
                                     <button class="btn btn-sm btn-danger">Delete</button>

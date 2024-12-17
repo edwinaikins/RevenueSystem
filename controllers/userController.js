@@ -17,7 +17,9 @@ exports.registerUser = async (req, res) => {
         const [result] = await db.query('INSERT INTO users (email, password) VALUES (?, ?)', [email, hashedPassword]);
 
         // Redirect to login on successful registration
-        res.redirect('/user/login');
+        //back end responds
+        res.send({msg:"registered Successfully"})
+        //res.redirect('/user/login');
     } catch (err) {
         if (err.code === 'ER_DUP_ENTRY') {
             console.warn("Registration failed: User already exists."); // Log duplicate entry warning

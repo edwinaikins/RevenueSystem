@@ -114,10 +114,10 @@ exports.getClientDetails = async (req, res) => {
             SELECT 
                 businesses.*, 
                 locations.location,
-                business_types.business_type
+                entity_type.division
             FROM businesses
             LEFT JOIN locations ON businesses.location_id = locations.location_id
-            LEFT JOIN business_types ON businesses.business_type_id = business_types.business_type_id
+            LEFT JOIN entity_type ON businesses.entity_type_id = entity_type.entity_type_id
             WHERE businesses.client_id = ?
         `, [id]);
         
@@ -127,16 +127,18 @@ exports.getClientDetails = async (req, res) => {
             SELECT
             Properties.*, 
             locations.location,
-            property_types.property_type
+            entity_type.division
             FROM Properties 
             LEFT JOIN locations ON Properties.location_id = locations.location_id
-            LEFT JOIN property_types ON Properties.property_type_id = property_types.property_type_id
+            LEFT JOIN entity_type ON Properties.entity_type_id = entity_type.entity_type_id
             WHERE Properties.client_id = ?`, [id]);
 
         // Fetch business types
-        const [businessTypes] = await db.query('SELECT * FROM business_types');
+       // const [businessTypes] = await db.query('SELECT * FROM business_types');
 
-        const [property_types] = await db.query('SELECT * FROM property_types')
+       // const [property_types] = await db.query('SELECT * FROM property_types')
+
+        const [entity_type] = await db.query('SELECT * FROM entity_type')
 
         const [locations] = await db.query('SELECT * FROM locations');
 
@@ -144,15 +146,14 @@ exports.getClientDetails = async (req, res) => {
         //const [signages] = await db.query("SELECT * FROM signages WHERE client_id = ?", [clientId]);
 
         // Respond with all data
-        
+
         res.render("oneClientDetails",{
             layout: false, 
             pageTitle: 'Portal',
             client: client[0],
             businesses,
             properties,
-            businessTypes,
-            property_types,
+            entity_type,
             locations
         })
         

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Billing</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Client Billing Management</h1>
+
+        <!-- Search Form -->
+        <div class="card mt-4">
+            <div class="card-header">Search Client</div>
+            <div class="card-body">
+                <form id="searchClientForm">
+                    <div class="mb-3">
+                        <label for="clientId" class="form-label">Client ID</label>
+                        <input type="text" id="clientId" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Client Details -->
+        <div class="card mt-4" id="clientDetailsCard" style="display: none;">
+            <div class="card-header">Client Details</div>
+            <div class="card-body">
+                <p><strong>Client Name:</strong> <span id="clientName"></span></p>
+                <p><strong>Contact:</strong> <span id="clientContact"></span></p>
+            </div>
+        </div>
+
+        <!-- Businesses and Properties -->
+        <div class="card mt-4" id="entitiesCard" style="display: none;">
+            <div class="card-header">Businesses and Properties</div>
+            <div class="card-body">
+                <h5>Businesses</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="businessesTableBody"></tbody>
+                </table>
+
+                <h5 class="mt-4">Properties</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Address</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="propertiesTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bill Entity Modal -->
+    <div class="modal fade" id="billModal" tabindex="-1" aria-labelledby="billModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="billModalLabel">Bill Entity</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="billForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="entityType" />
+                        <input type="hidden" id="entityId" />
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Bill Description</label>
+                            <textarea id="description" class="form-control" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Amount</label>
+                            <input type="number" id="amount" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="extraFees" class="form-label">Extra Fees (Comma-Separated, e.g., "Fee1:100,Fee2:200")</label>
+                            <input type="text" id="extraFees" class="form-control">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Bill</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data
+        const mockClientData = {
+            success: true,
+            client: {
+                firstname: "John",
+                lastname: "Doe",
+                contact: "123-456-7890"
+            },
+            businesses: [
+                {
+                    business_id: 1,
+                    business_name: "ABC Corp",
+                    business_type: "Retail",
+                    category: "Small Business",
+                    billed: false
+                },
+                {
+                    business_id: 2,
+                    business_name: "XYZ Store",
+                    business_type: "Wholesale",
+                    category: "Large Business",
+                    billed: true
+                }
+            ],
+            properties: [
+                {
+                    property_id: 101,
+                    name: "Downtown Office",
+                    address: "123 Main St, Cityville",
+                    billed: false
+                },
+                {
+                    property_id: 102,
+                    name: "Warehouse",
+                    address: "456 Industrial Ave, Townsville",
+                    billed: true
+                }
+            ]
+        };
+
+        // Simulate Fetch
+        const mockFetch = (url, options) => {
+            if (url.includes("/billing/getClientBillData")) {
+                return Promise.resolve({
+                    json: () => Promise.resolve(mockClientData)
+                });
+            } else if (url.includes("/billing/createBill") && options.method === "POST") {
+                console.log("Bill Created:", JSON.parse(options.body));
+                return Promise.resolve({ json: () => Promise.resolve({ success: true }) });
+            }
+        };
+        window.fetch = mockFetch;
+
+        // Search client
+        document.getElementById("searchClientForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const clientId = document.getElementById("clientId").value;
+
+            const response = await fetch(`/billing/getClientBillData?client_id=${clientId}`);
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById("clientName").innerText = `${data.client.firstname} ${data.client.lastname}`;
+                document.getElementById("clientContact").innerText = data.client.contact;
+
+                renderEntities(data.businesses, "businessesTableBody", "Business");
+                renderEntities(data.properties, "propertiesTableBody", "Property");
+
+                document.getElementById("clientDetailsCard").style.display = "block";
+                document.getElementById("entitiesCard").style.display = "block";
+            }
+        });
+
+        // Render entities
+        const renderEntities = (entities, tableBodyId, entityType) => {
+            const tbody = document.getElementById(tableBodyId);
+            tbody.innerHTML = "";
+            entities.forEach((entity, index) => {
+                const isBilled = entity.billed;
+                const row = `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${entity.business_name || entity.name}</td>
+                        <td>${entity.business_type || entity.address || ""}</td>
+                        <td>${entity.category || ""}</td>
+                        <td>${isBilled ? "Billed" : "Unbilled"}</td>
+                        <td>
+                            ${isBilled ? `<span class="badge bg-success">Already Billed</span>` : `
+                                <button class="btn btn-primary btn-sm" 
+                                    onclick="openBillModal('${entityType}', ${entity.business_id || entity.property_id})">
+                                    Bill
+                                </button>
+                            `}
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        };
+
+        // Open Bill Modal
+        const openBillModal = (entityType, entityId) => {
+            document.getElementById("entityType").value = entityType;
+            document.getElementById("entityId").value = entityId;
+            const modal = new bootstrap.Modal(document.getElementById("billModal"));
+            modal.show();
+        };
+
+        // Handle Bill Submission
+        document.getElementById("billForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const clientId = document.getElementById("clientId").value;
+            const entityType = document.getElementById("entityType").value;
+            const entityId = document.getElementById("entityId").value;
+            const description = document.getElementById("description").value;
+            const amount = parseFloat(document.getElementById("amount").value);
+            const extraFeesInput = document.getElementById("extraFees").value;
+
+            const extraFees = extraFeesInput
+                .split(",")
+                .map(fee => {
+                    const [desc, amt] = fee.split(":");
+                    return { description: desc.trim(), amount: parseFloat(amt.trim()) };
+                })
+                .filter(fee => fee.description && !isNaN(fee.amount));
+
+            const payload = {
+                clientId,
+                billItem: {
+                    entity_type: entityType,
+                    entity_id: entityId,
+                    description,
+                    amount,
+                    year: new Date().getFullYear()
+                },
+                fees: extraFees
+            };
+
+            const response = await fetch("/billing/createBill", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert("Entity successfully billed!");
+                location.reload();
+            }
+        });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

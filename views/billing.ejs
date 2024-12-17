@@ -1,0 +1,391 @@
+<% pageTitle = 'Billing' %>
+
+<div class="content-wrapper">
+  <section class="content">
+    <!-- Search Form -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Search Client</h3>
+      </div>
+      <div class="card-body">
+        <form id="searchForm">
+          <div class="row">
+            <div class="col-md-6">
+              <label for="searchValue">Client ID</label>
+              <input type="text" id="searchValue" class="form-control" required>
+            </div>
+            <div class="col-md-2 align-self-end">
+              <button type="submit" class="btn btn-primary btn-block">Search</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Client Details Section -->
+    <div id="clientDetailsContainer" class="mt-4"></div>
+
+    <!-- Businesses Section -->
+    <div id="businessCardsContainer" class="mt-4"></div>
+
+    <!-- Properties Section -->
+    <div id="propertyCardsContainer" class="mt-4"></div>
+  </section>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="editMainItemModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Main Item</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="editMainItemForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="editMainItemAmount">Amount</label>
+            <input type="number" id="editMainItemAmount" class="form-control" step="0.01" min="0" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="editExtraItemModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit/Add Extra Item</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="editExtraItemForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="editExtraItemDescription">Description</label>
+            <textarea id="editExtraItemDescription" class="form-control" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="editExtraItemAmount">Amount</label>
+            <input type="number" id="editExtraItemAmount" class="form-control" step="0.01" min="0" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  let clientDetails = {};
+  let businesses = [];
+  let properties = [];
+  let extraItems = {}; // Store extra items for each entity ID
+  let editEntityId = null; // Current entity ID for editing
+  let editExtraItemIndex = null; // Current extra item being edited
+
+  document.getElementById("searchForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const clientId = document.getElementById("searchValue").value;
+    
+    try {
+      const response = await fetch(`/billing/getClientBillData?client_id=${clientId}`);
+      const result = await response.json();
+
+      if (result.success) {
+        clientDetails = result.client;
+        businesses = result.businesses || [];
+        properties = result.properties || [];
+        extraItems = {}; // Initialize extra items for all entities
+        [...businesses, ...properties].forEach((entity) => {
+          extraItems[entity.entity_id] = []; // Create a unique array for each entity
+        });
+        renderClientDetails();
+        renderBusinessCards();
+        renderPropertyCards();
+      } else {
+        alert("Client not found");
+      }
+    } catch (error) {
+      console.error("Error fetching client data:", error);
+      alert("An error occurred while fetching client data.");
+    }
+  });
+
+  function renderClientDetails() {
+    const container = document.getElementById("clientDetailsContainer");
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <h3>Client Details</h3>
+        </div>
+        <div class="card-body">
+          <p><strong>Name:</strong> ${clientDetails.firstname} ${clientDetails.lastname}</p>
+          <p><strong>Email:</strong> ${clientDetails.email}</p>
+          <p><strong>Phone:</strong> ${clientDetails.contact}</p>
+          <p><strong>Address:</strong> ${clientDetails.address}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderBusinessCards() {
+    const container = document.getElementById("businessCardsContainer");
+    container.innerHTML = "";
+    businesses.forEach((business) => {
+      container.appendChild(createCard(business, "Business"));
+    });
+  }
+
+  function renderPropertyCards() {
+    const container = document.getElementById("propertyCardsContainer");
+    container.innerHTML = "";
+    properties.forEach((property) => {
+      container.appendChild(createCard(property, "Property"));
+    });
+  }
+
+  function createCard(entity, type) {
+    if (!entity.entity_id) {
+      console.error(`Missing entity_id for ${type}:`, entity);
+      return null;
+    }
+
+    const card = document.createElement("div");
+    card.className = "card mb-4";
+    card.innerHTML = `
+      <div class="card-header">
+        <h5>${entity.name || entity.house_number || entity.business_name}</h5>
+        <div class="form-inline">
+          <label for="yearSelect-${entity.entity_id}" class="mr-2">Year:</label>
+          <select id="yearSelect-${entity.entity_id}" class="form-control">
+            ${generateYearOptions()}
+          </select>
+        </div>
+      </div>
+      <div class="card-body">
+        <h6>${type === "Business" ? `Business ID: ${entity.entity_id}`: `Property ID: ${entity.entity_id}`}</h6>
+        <h6>${`Entity Type: ${entity.entity_type}`}</h6>
+        <h6>${type === "Business" ? `Business Type: ${entity.business_type}`: `Property Type: ${entity.property_type}`}</h6>
+        <h6>${`Category: ${entity.category}`}</h6>
+        <table class="table table-bordered mt-3">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>${type === "Business" ? "Business Operating Permit" : "Property Rate"}</td>
+              <td>${entity.amount}</td>
+              <td>
+                <button class="btn btn-sm btn-warning" onclick="openMainItemModal('${entity.entity_id}', ${entity.amount}, '${type}')">Edit</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h6>Extra Items</h6>
+        <table class="table table-bordered mt-3" id="extraItemsTable-${entity.entity_id}">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <button class="btn btn-success" onclick="openExtraItemModal('${entity.entity_id}')">Add Extra Item</button>
+        <button class="btn btn-primary float-right" onclick="saveEntityBill('${entity.entity_id}', '${type}')">Save Bill</button>
+      </div>
+    `;
+    renderExtraItems(entity.entity_id);
+    return card;
+  }
+
+  function renderExtraItems(entityId) {
+    const tbody = document.querySelector(`#extraItemsTable-${entityId} tbody`);
+    if (!tbody) {
+      return;
+    }
+
+    tbody.innerHTML = "";
+    extraItems[entityId].forEach((item, index) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${item.description}</td>
+          <td>${item.amount}</td>
+          <td>
+            <button class="btn btn-sm btn-warning" onclick="openExtraItemModal('${entityId}', ${index})">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="removeExtraItem('${entityId}', ${index})">Remove</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  // Open modal to edit main item
+  function openMainItemModal(entityId, amount, type) {
+    editEntityId = entityId;
+    document.getElementById("editMainItemAmount").value = amount || 0;
+    $("#editMainItemModal").modal("show");
+  }
+
+  // Handle main item form submission
+  document.getElementById("editMainItemForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const amount = parseFloat(document.getElementById("editMainItemAmount").value);
+
+    // Update the corresponding entity
+    const entity = [...businesses, ...properties].find((e) => e.entity_id === editEntityId);
+    if (entity) {
+      entity.amount = amount;
+      renderBusinessCards();
+      renderPropertyCards();
+    }
+
+    $("#editMainItemModal").modal("hide");
+  });
+
+  // Open modal to add/edit extra item
+  function openExtraItemModal(entityId, itemIndex = null) {
+    editEntityId = entityId;
+    editExtraItemIndex = itemIndex;
+
+    if (itemIndex !== null) {
+      const item = extraItems[entityId][itemIndex];
+      document.getElementById("editExtraItemDescription").value = item.description;
+      document.getElementById("editExtraItemAmount").value = item.amount;
+    } else {
+      document.getElementById("editExtraItemDescription").value = "";
+      document.getElementById("editExtraItemAmount").value = "";
+    }
+
+    $("#editExtraItemModal").modal("show");
+  }
+
+  document.getElementById("editExtraItemForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const description = document.getElementById("editExtraItemDescription").value;
+    const amount = parseFloat(document.getElementById("editExtraItemAmount").value);
+
+    if (editExtraItemIndex === null) {
+      extraItems[editEntityId].push({ description, amount });
+    } else {
+      extraItems[editEntityId][editExtraItemIndex] = { description, amount };
+    }
+
+    renderExtraItems(editEntityId);
+    $("#editExtraItemModal").modal("hide");
+  });
+
+  function removeExtraItem(entityId, itemIndex) {
+    extraItems[entityId].splice(itemIndex, 1);
+    renderExtraItems(entityId);
+  }
+
+  function generateYearOptions() {
+    const currentYear = new Date().getFullYear();
+    let options = "";
+    for (let year = currentYear - 5; year <= currentYear + 5; year++) {
+      options += `<option value="${year}" ${year === currentYear ? "selected" : ""}>${year}</option>`;
+    }
+    return options;
+  }
+
+  window.openMainItemModal = openMainItemModal;
+  window.openExtraItemModal = openExtraItemModal;
+
+// Updated saveEntityBill function
+window.saveEntityBill = async function (entityId, entityType, replace = false) {
+  // Combine businesses and properties to find the entity
+  const entity = [...businesses, ...properties].find((e) => e.entity_id === entityId);
+
+  if (!entity) {
+    alert(`${entityType} not found. Please refresh and try again.`);
+    return;
+  }
+
+  // Get the selected year safely
+  const yearSelect = document.getElementById(`yearSelect-${entityId}`);
+  const year = yearSelect ? yearSelect.value : new Date().getFullYear();
+
+  // Safeguard for extra items (default to an empty array)
+  const fees = extraItems[entityId] || [];
+
+  // Main description based on entity type
+  const mainDescription = entityType === "Business" ? "Business Operating Permit" : "Property Rate";
+
+  // Construct the payload
+  const payload = {
+    clientId: clientDetails.client_id, // Ensure client data exists
+    billItem: {
+      entity_id: entity.entity_id,
+      entity_type: entityType, // "Business" or "Property"
+      year: year,
+      description: mainDescription,
+      amount: entity.amount || 0, // Default amount if undefined
+    },
+    fees: fees.map((item) => ({
+      description: item.description,
+      amount: item.amount,
+    }
+  )),
+    replace
+  };
+  // Send the payload to backend API
+  try {
+    const response = await fetch("/billing/createBill", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (response.status === 409 && result.billExists) {
+      // Bill already exists - ask the user to confirm replacement
+      const confirmReplace = confirm(
+        result.message || "A bill already exists. Do you want to replace it?"
+      );
+      if (confirmReplace) {
+        // Send the request again with the replace flag
+        payload.replace = true; // Add replace flag
+        await saveEntityBill(entityId, entityType, true); // Retry with replace
+      }
+    } 
+    else if (result.success) {
+      alert(
+        `${entityType} bill for ${entity.name || entity.business_name || entity.property_name} (Year: ${year}) saved successfully!`
+      );
+    } else {
+      alert(`Failed to save ${entityType} bill for ${entity.name || entity.business_name || entity.property_name}.`);
+    }
+  } catch (error) {
+    console.error("Error saving bill:", error);
+    alert("An unexpected error occurred while saving the bill.");
+  }
+};
+
+
+</script>
+
+<!-- Include jQuery and Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>

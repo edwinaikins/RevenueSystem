@@ -14,8 +14,9 @@ const db = require("../config/db");
 // };
 
 exports.registerProperty = async (req, res) => {
-    const { client_id, house_number, digital_address, location_id, property_type_id } = req.body;
-    console.log({ client_id, house_number, digital_address, location_id, property_type_id })
+    const { client_id, house_number, digital_address, location_id, entity_type_id } = req.body;
+    console.log(req.body)
+    console.log({ client_id, house_number, digital_address, location_id, entity_type_id })
     try {
         // Step 1: Get the latest property_id
         const [results] = await db.query("SELECT property_id FROM Properties ORDER BY id DESC LIMIT 1");
@@ -27,8 +28,8 @@ exports.registerProperty = async (req, res) => {
 
         // Step 3: Insert the new property
         await db.query(
-            "INSERT INTO Properties (client_id, property_id, house_number, digital_address, location_id, property_type_id) VALUES (?, ?, ?, ?, ?, ?)",
-            [client_id, newPropertyId, house_number, digital_address, location_id, property_type_id]
+            "INSERT INTO Properties (client_id, property_id, house_number, digital_address, location_id, entity_type_id) VALUES (?, ?, ?, ?, ?, ?)",
+            [client_id, newPropertyId, house_number, digital_address, location_id, entity_type_id]
         );
         res.status(200).json({ msg: "Success" });
 
@@ -41,12 +42,12 @@ exports.registerProperty = async (req, res) => {
 
 exports.updateProperty = async (req, res) => {
     const propertyId = req.params.id;
-    const { house_number, digital_address, location_id, property_type_id } = req.body;
+    const { house_number, digital_address, location_id, entity_type_id } = req.body;
     console.log(propertyId)
     try {
         const [result] = await db.query(
-            'UPDATE Properties SET house_number = ?, digital_address = ?, location_id = ?, property_type_id= ? WHERE id = ?',
-            [house_number, digital_address, location_id, property_type_id, propertyId]
+            'UPDATE Properties SET house_number = ?, digital_address = ?, location_id = ?, entity_type_id= ? WHERE id = ?',
+            [house_number, digital_address, location_id, entity_type_id, propertyId]
         );
         console.log(result)
 
@@ -99,7 +100,7 @@ exports.showProperties = async (req, res) => {
             `SELECT *
             FROM Properties
             LEFT JOIN locations ON Properties.location_id = locations.location_id
-            LEFT JOIN property_types ON Properties.property_type_id = property_types.property_type_id
+            LEFT JOIN entity_type ON Properties.entity_type_id = entity_type.entity_type_id
             LIMIT ? OFFSET ?`,
             [itemsPerPage, offset]
         );
@@ -126,7 +127,7 @@ exports.showProperties = async (req, res) => {
             const [properties] = await db.query(
                 `SELECT * FROM Properties 
                  LEFT JOIN locations ON Properties.location_id = locations.location_id
-                 LEFT JOIN property_types ON Properties.property_type_id = property_types.property_type_id
+                 LEFT JOIN entity_type ON Properties.entity_type_id = entity_type.entity_type_id
                  WHERE house_number LIKE ? OR digital_address LIKE ? OR client_id LIKE ? 
                  LIMIT ? OFFSET ?`,
                  [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`, limit, offset]
@@ -152,3 +153,79 @@ exports.showProperties = async (req, res) => {
             res.status(500).json({ message: "An error occurred while searching for properties" });
         }
     };
+
+    exports.getFeeFixing = async (req, res) => {
+        
+        const feeFixingId = req.params.id;
+
+        try{
+        const [categories] = await db.query(`SELECT * FROM fee_fixing WHERE fee_fixing_id = ?`, [feeFixingId])
+
+        if (categories.affectedRows === 0) {
+            return res.status(404).send("FeeFixing not found");
+        }
+
+        res.json({categories});
+    }
+    catch(error){
+        console.error("Error",error)
+    }
+    }
+
+
+    exports.getFeeFixingWithPropertyType = async (req, res) => {
+        
+        const entity_type_id = req.params.id;
+
+        try{
+        const [categories] = await db.query(`SELECT * FROM fee_fixing WHERE entity_type_id = ?`, [entity_type_id])
+
+        if (categories.affectedRows === 0) {
+            return res.status(404).send("FeeFixing not found");
+        }
+
+        res.json({categories});
+    }
+    catch(error){
+        console.error("Error",error)
+    }
+    }
+
+    exports.getPropertyWithFeeFixing = async(req, res) => {
+        const clientId = req.params.id;
+        try{
+            const query = `
+                SELECT Properties.property_id, Properties.house_number, Properties.digital_address, entity_type.entity_type_id, entity_type.division, fee_fixing.category, fee_fixing.amount, locations.location
+                    FROM Properties
+                    LEFT JOIN entity_type ON Properties.entity_type_id = entity_type.entity_type_id
+                    LEFT JOIN fee_fixing ON Properties.fee_fixing_id = fee_fixing.fee_fixing_id
+                    LEFT JOIN locations ON Properties.location_id = locations.location_id
+                    WHERE client_id = ?
+            `
+            const [property] = await db.query(query, [clientId])
+        
+           res.render("propertyFeefixing",{property})
+        }catch(error){
+            console.error(error)
+        }
+    
+    }
+
+    exports.feeFixing = async (req, res) => {
+        
+        const propertyId = req.params.id;
+        const { fee_fixing_id } = req.body;
+    
+        try{
+        const [result] = await db.query(`UPDATE Properties SET fee_fixing_id = ? WHERE property_id = ?`, [fee_fixing_id, propertyId])
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send("Property not found");
+        }
+
+        res.json({msg:"Business updated successfully"});
+    }
+    catch(error){
+        console.error("Error",error)
+    }
+    }
