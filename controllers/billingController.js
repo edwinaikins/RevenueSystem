@@ -170,7 +170,7 @@ exports.getCombinedBill = async (req, res) => {
 // Generate a new bill (create entries)
 exports.createBill = async (req, res) => {
     const { clientId, billItem, fees = [], replace = false } = req.body;
-    
+    console.log(req.body)
     let connection;
 
     try {
@@ -205,10 +205,22 @@ exports.createBill = async (req, res) => {
         }
 
         // Insert the new bill summary
+        let businessId = null;
+        let propertyId = null;
+    
+        // Determine which field to populate based on entity_type
+        if (billItem.entity_type === 'Business') {
+            businessId = billItem.entity_id;
+            // Assuming billItem contains the business_id
+        } else if (billItem.entity_type === 'Property') {
+            propertyId = billItem.entity_id; // Assuming billItem contains the property_id
+        } else {
+            throw new Error('Invalid entity type. Must be "business" or "property".');
+        }
         const [result] = await connection.query(`
-            INSERT INTO bills (client_id, entity_type, year, total_amount, date_created)
-            VALUES (?, ?, ?, ?, NOW())
-        `, [clientId, billItem.entity_type, billItem.year, billItem.amount]);
+            INSERT INTO bills (client_id, entity_type, business_id, property_id, year, total_amount, date_created, due_date, bill_status)
+            VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?)
+        `, [clientId, billItem.entity_type, businessId, propertyId, billItem.year, billItem.amount, "2024-12-31","Draft"]);
 
         const billId = result.insertId;
 

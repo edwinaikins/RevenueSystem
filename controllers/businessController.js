@@ -13,26 +13,101 @@ exports.showRegistration = async (req, res) => {
     }
 };
 
+// exports.registerBusiness = async (req, res) => {
+//     const { client_id, business_name, business_contact, business_activity, business_structure, business_size, entity_type_id, address, location_id, digital_address } = req.body;
+
+//     try {
+//         // Step 1: Get the latest business_id
+//         const [results] = await db.query("SELECT business_id FROM businesses ORDER BY id DESC LIMIT 1");
+//         const lastBusinessId = results[0]?.business_id || "NAMA-B-0000";
+
+//         // Step 2: Increment the numeric part of the business_id
+//         const numericPart = parseInt(lastBusinessId.slice(7), 10) + 1;
+//         const newBusinessId = `NAMA-B-${String(numericPart).padStart(4, '0')}`;
+
+//         // Step 3: Insert the new business
+//         await db.query(
+//             "INSERT INTO businesses (client_id, business_id, business_name, business_contact, business_activity, business_structure, business_size, entity_type_id, address, location_id, digital_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+//             [client_id, newBusinessId, business_name, business_contact, business_activity, business_structure, business_size, entity_type_id, address, location_id, digital_address]
+//         );
+//         res.send({msg: "Business registered successfully"})
+//         //res.status(200).json({ redirectUrl: `/client/clientDetails/${client_id}` });
+
+
+//     } catch (error) {
+//         console.error('Error creating business:', error);
+//         res.status(500).send("Error creating business");
+//     }
+// };
 exports.registerBusiness = async (req, res) => {
-    const { client_id, business_name, business_contact, business_activity, business_structure, business_size, entity_type_id, address, location_id, digital_address } = req.body;
+    const {
+        client_id,
+        business_name,
+        business_contact,
+        business_activity,
+        business_structure,
+        business_size,
+        entity_type_id,
+        address,
+        location_id,
+        digital_address
+    } = req.body;
 
     try {
-        // Step 1: Get the latest business_id
-        const [results] = await db.query("SELECT business_id FROM businesses ORDER BY id DESC LIMIT 1");
-        const lastBusinessId = results[0]?.business_id || "NAMA-B-0000";
+        // Step 1: Get the location_code from the locations table
+        const [locationResults] = await db.query(
+            "SELECT location_code FROM locations WHERE location_id = ?",
+            [location_id]
+        );
 
-        // Step 2: Increment the numeric part of the business_id
-        const numericPart = parseInt(lastBusinessId.slice(7), 10) + 1;
-        const newBusinessId = `NAMA-B-${String(numericPart).padStart(4, '0')}`;
+        if (locationResults.length === 0) {
+            return res.status(400).send("Invalid location_id. Location not found.");
+        }
 
-        // Step 3: Insert the new business
+        const locationCode = locationResults[0].location_code;
+
+        // Step 2: Get the latest business_id for this location_code
+        // We assume the format is always 'NAMA-<locationCode>-<XXXX>'
+        const [results] = await db.query(
+            "SELECT business_id FROM businesses WHERE business_id LIKE CONCAT('NAMA-B-', ?, '-%') ORDER BY id DESC LIMIT 1",
+            [locationCode]
+        );
+
+        let newIncrement = 1; // default if no prior business_id found
+
+        if (results.length > 0 && results[0].business_id) {
+            const lastBusinessId = results[0].business_id;
+            // lastBusinessId should look like 'NAMA-001-0001'
+            // We can split by '-' and take the last part
+            const parts = lastBusinessId.split('-');
+            const lastIncrementStr = parts[3]; // e.g. "0001"
+            const lastIncrementNum = parseInt(lastIncrementStr, 10);
+            newIncrement = lastIncrementNum + 1;
+        }
+
+        // Step 3: Construct the new business_id
+        const formattedIncrement = String(newIncrement).padStart(4, '0'); // zero-pad to 4 digits
+        const newBusinessId = `NAMA-B-${locationCode}-${formattedIncrement}`;
+
+        // Step 4: Insert the new business
         await db.query(
             "INSERT INTO businesses (client_id, business_id, business_name, business_contact, business_activity, business_structure, business_size, entity_type_id, address, location_id, digital_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [client_id, newBusinessId, business_name, business_contact, business_activity, business_structure, business_size, entity_type_id, address, location_id, digital_address]
+            [
+                client_id,
+                newBusinessId,
+                business_name,
+                business_contact,
+                business_activity,
+                business_structure,
+                business_size,
+                entity_type_id,
+                address,
+                location_id,
+                digital_address
+            ]
         );
-        res.send({msg: "Business registered successfully"})
-        //res.status(200).json({ redirectUrl: `/client/clientDetails/${client_id}` });
 
+        res.send({ msg: "Business registered successfully" });
 
     } catch (error) {
         console.error('Error creating business:', error);

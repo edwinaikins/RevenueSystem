@@ -372,7 +372,7 @@ window.saveEntityBill = async function (entityId, entityType, replace = false) {
     } 
     else if (result.success) {
       alert(
-        `${entityType} bill for ${entity.name || entity.business_name || entity.property_name} (Year: ${year}) saved successfully!`
+        `${entityType} bill for ${entity.name || entity.business_name || entity.house_number} (Year: ${year}) saved successfully!`
       );
     } else {
       alert(`Failed to save ${entityType} bill for ${entity.name || entity.business_name || entity.property_name}.`);

@@ -13,32 +13,83 @@ const db = require("../config/db");
 //     }
 // };
 
+// exports.registerProperty = async (req, res) => {
+//     const { client_id, house_number, digital_address, location_id, entity_type_id } = req.body;
+//     console.log(req.body)
+//     console.log({ client_id, house_number, digital_address, location_id, entity_type_id })
+//     try {
+//         // Step 1: Get the latest property_id
+//         const [results] = await db.query("SELECT property_id FROM Properties ORDER BY id DESC LIMIT 1");
+//         const lastPropertyId = results[0]?.property_id || "NAMA-P-0000";
+
+//         // Step 2: Increment the numeric part of the property_id
+//         const numericPart = parseInt(lastPropertyId.slice(7), 10) + 1;
+//         const newPropertyId = `NAMA-P-${String(numericPart).padStart(4, '0')}`;
+
+//         // Step 3: Insert the new property
+//         await db.query(
+//             "INSERT INTO Properties (client_id, property_id, house_number, digital_address, location_id, entity_type_id) VALUES (?, ?, ?, ?, ?, ?)",
+//             [client_id, newPropertyId, house_number, digital_address, location_id, entity_type_id]
+//         );
+//         res.status(200).json({ msg: "Success" });
+
+
+//     } catch (error) {
+//         console.error('Error creating property:', error);
+//         res.status(500).send("Error creating property");
+//     }
+// };
 exports.registerProperty = async (req, res) => {
     const { client_id, house_number, digital_address, location_id, entity_type_id } = req.body;
-    console.log(req.body)
-    console.log({ client_id, house_number, digital_address, location_id, entity_type_id })
+
     try {
-        // Step 1: Get the latest property_id
-        const [results] = await db.query("SELECT property_id FROM Properties ORDER BY id DESC LIMIT 1");
-        const lastPropertyId = results[0]?.property_id || "NAMA-P-0000";
+        // Step 1: Get the location_code associated with the location_id
+        const [locationResults] = await db.query(
+            "SELECT location_code FROM locations WHERE location_id = ?",
+            [location_id]
+        );
 
-        // Step 2: Increment the numeric part of the property_id
-        const numericPart = parseInt(lastPropertyId.slice(7), 10) + 1;
-        const newPropertyId = `NAMA-P-${String(numericPart).padStart(4, '0')}`;
+        if (locationResults.length === 0) {
+            return res.status(400).json({ error: "Invalid location_id. Location not found." });
+        }
 
-        // Step 3: Insert the new property
+        const locationCode = locationResults[0].location_code;
+
+        // Step 2: Get the latest property_id for this location_code
+        // The pattern is assumed to be "NAMA-P-<location_code>-<XXXX>"
+        const [results] = await db.query(
+            "SELECT property_id FROM Properties WHERE property_id LIKE CONCAT('NAMA-P-', ?, '-%') ORDER BY id DESC LIMIT 1",
+            [locationCode]
+        );
+
+        let newIncrement = 1;
+        if (results.length > 0 && results[0].property_id) {
+            const lastPropertyId = results[0].property_id;
+            // lastPropertyId format: "NAMA-001-0001"
+            const parts = lastPropertyId.split('-');
+            const lastIncrementStr = parts[3];  // e.g. "0001"
+            const lastIncrementNum = parseInt(lastIncrementStr, 10);
+            newIncrement = lastIncrementNum + 1;
+        }
+
+        // Step 3: Construct the new property_id
+        const formattedIncrement = String(newIncrement).padStart(4, '0');
+        const newPropertyId = `NAMA-P-${locationCode}-${formattedIncrement}`;
+
+        // Step 4: Insert the new property record
         await db.query(
             "INSERT INTO Properties (client_id, property_id, house_number, digital_address, location_id, entity_type_id) VALUES (?, ?, ?, ?, ?, ?)",
             [client_id, newPropertyId, house_number, digital_address, location_id, entity_type_id]
         );
-        res.status(200).json({ msg: "Success" });
 
+        res.status(200).json({ msg: "Success", property_id: newPropertyId });
 
     } catch (error) {
         console.error('Error creating property:', error);
         res.status(500).send("Error creating property");
     }
 };
+
 
 exports.updateProperty = async (req, res) => {
     const propertyId = req.params.id;
