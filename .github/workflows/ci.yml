@@ -31,9 +31,13 @@ jobs:
     - name: Run tests
       run: npm test
 
-    - name: Add server to known_hosts
+    - name: Set up SSH known_hosts
       run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           ssh-keyscan -H 34.173.147.11 >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
 
     # Step 5: Deploy
     - name: Deploy to Production
