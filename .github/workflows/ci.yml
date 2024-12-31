@@ -30,3 +30,11 @@ jobs:
     # Step 4: Run tests
     - name: Run tests
       run: npm test
+
+    # Step 5: Deploy
+    - name: Deploy to Production
+      run: |
+          ssh edwin@34.173.147.11 "cd /var/www/rms-app && git pull && npm install && pm2 restart rms-app"
+          env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
