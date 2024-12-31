@@ -2,7 +2,7 @@ const express = require("express");
 const session = require("express-session")
 const path = require("path");
 require("dotenv").config();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3000;
 const expressLayouts = require('express-ejs-layouts');
 const passport = require("passport");
 require("./config/passport")(passport);
