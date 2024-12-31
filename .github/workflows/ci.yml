@@ -31,18 +31,24 @@ jobs:
     - name: Run tests
       run: npm test
 
-    - name: Set up SSH known_hosts
+    - name: Set up SSH key
       run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          ssh-keyscan -H 34.173.147.11 >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+
+    - name: Set up SSH known_hosts
+      run: |
+        ssh-keyscan -H 34.173.147.11 >> ~/.ssh/known_hosts
+        chmod 644 ~/.ssh/known_hosts
+
 
 
     # Step 5: Deploy
     - name: Deploy to Production
       run: |
           ssh edwin@34.173.147.11 "cd /home/edwin/RevenueSystem && git pull origin main && npm install && pm2 restart rms-app"
-          env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+         
 
