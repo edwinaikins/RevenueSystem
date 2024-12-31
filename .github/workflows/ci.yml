@@ -31,10 +31,14 @@ jobs:
     - name: Run tests
       run: npm test
 
+    - name: Add server to known_hosts
+      run: |
+          ssh-keyscan -H 34.173.147.11 >> ~/.ssh/known_hosts
+
     # Step 5: Deploy
     - name: Deploy to Production
       run: |
-          ssh edwin@34.173.147.11 "cd /var/www/rms-app && git pull && npm install && pm2 restart rms-app"
+          ssh edwin@34.173.147.11 "cd /home/edwin/RevenueSystem && git pull origin main && npm install && pm2 restart rms-app"
           env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
