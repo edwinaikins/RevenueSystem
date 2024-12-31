@@ -1,0 +1,308 @@
+<% pageTitle = 'Report' %>
+<div class="content-wrapper">
+  <!-- Main Content -->
+  <section class="content">
+    <div class="container-fluid">
+      <!-- Search Form -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Search Bill</h3>
+        </div>
+        <div class="card-body">
+          <form id="searchForm">
+            <div class="row">
+              <div class="col-md-4">
+                <label for="clientId">Client ID</label>
+                <input type="text" id="clientId" class="form-control" placeholder="Enter Client ID">
+              </div>
+              <div class="col-md-4">
+                <label for="businessId">Business ID</label>
+                <input type="text" id="businessId" class="form-control" placeholder="Enter Business ID">
+              </div>
+              <div class="col-md-4">
+                <label for="businessName">Business Name</label>
+                <input type="text" id="businessName" class="form-control" placeholder="Enter Business Name">
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-md-12 text-right">
+                <button type="button" class="btn btn-primary" onclick="searchBill()">Search</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Bill Template -->
+      <div class="bill-container" id="billTemplate" style="display: none; margin-top: 20px;">
+        <div class="card">
+          <div class="card-body">
+            <!-- Header Table -->
+            <table class="header-table" style="width: 100%; margin-bottom: 20px;">
+              <tr>
+                <td style="width: 20%; text-align: left;">
+                  <img src="/images/nama.jpeg" alt="Left Logo" style="width: 80px; object-fit: contain; display: block;">
+                </td>
+                <td style="width: 60%; text-align: center; vertical-align: middle;">
+                  <h2 style="font-size: 1.5rem; margin: 0;">NSAWAM ADOAGYIRI MUNICIPAL ASSEMBLY</h2>
+                  <h3 style="font-size: 1.2rem; margin: 5px 0;">GENERAL DEMAND NOTICE</h3>
+                  <p style="font-size: 0.9rem; margin: 0;">
+                    Website: <a href="http://www.nama.gov.gh" target="_blank">www.nama.gov.gh</a> | 
+                    Contact: 0593039517 / 0507368543
+                  </p>
+                </td>
+                <td style="width: 20%; text-align: right;">
+                  <img src="/images/ghana.jpeg" alt="Right Logo" style="width: 80px; object-fit: contain; display: inline-block;">
+                </td>
+              </tr>
+            </table>
+
+            <!-- Horizontal Line -->
+            <hr style="border: 1px solid #000; margin-bottom: 20px;">
+
+            <!-- Details Table -->
+            <table class="details-table" style="width: 100%; margin-bottom: 20px;">
+              <tr>
+                <th>Client Name</th>
+                <td id="billClientName"></td>
+                <th>Contact</th>
+                <td id="billContact"></td>
+                <th>Client ID</th>
+                <td id="billClientId"></td>
+              </tr>
+              <tr>
+                <th>Business Name</th>
+                <td id="billBusinessName"></td>
+                <th>Business ID</th>
+                <td id="billBusinessId"></td>
+                <th>Location</th>
+                <td id="billLocation"></td>
+              </tr>
+              <tr>
+                <th>Year of Assessment</th>
+                <td id="billYear"></td>
+                <th>Test1</th>
+                <td id="billLocation"></td>
+                <th>Test2</th>
+                <td id="billYear"></td>
+              </tr>
+            </table>
+
+            <!-- Additional Information -->
+            <div class="additional-info" style="margin-bottom: 20px;">
+              <p>
+                Under Section 1 & 2 of the Nsawam Adoagyiri Municipal bye-laws, a Business Operating Permit Rate of 
+                <strong>60.00 Ghana Cedis</strong> has been made in respect of the year ending <strong>2024</strong>, Payable on Demand.
+              </p>
+            </div>
+
+            <!-- Billing Table -->
+            <div class="table-responsive">
+              <table class="billing-table table table-bordered" style="width: 100%; border-collapse: collapse;">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Description</th>
+                    <th>Arrears(GHC)</th>
+                    <th>Current Bill(GHC)</th>
+                    <th>Total Due(GHC)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Business Operating Permit</td>
+                    <td id="billRate2"></td>
+                    <td id="billCurrent"></td>
+                    <td id="billTotal"></td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3" class="text-end"><strong>Grand Total</strong></td>
+                    <td id="billGrandTotal"><strong>GHC 0.00</strong></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Payment Instructions -->
+            <div class="payment-instructions" style="margin-top: 20px;">
+              <h4>PAYMENT TO BE MADE:</h4>
+              <ol>
+                <li>At the Nsawam Adoagyiri Municipal offices. Office Hours: From Monday to Friday 8:00 a.m. to 12:30 and 1:30 p.m. to 5:00 p.m.</li>
+                <li>By post to the Municipal Finance Officer, Nsawam Adoagyiri Municipal Assembly, P.O. Box NW 4, Nsawam.</li>
+                <li>Cheques, Postal, and Money Orders should be made payable to Nsawam Adoagyiri Municipal Assembly. Cheques drawn for payment should be marked "Commission to drawers account".</li>
+                <li>It shall be the duty of every person liable to pay these rates to do so at the office of the Nsawam Adoagyiri Municipal Assembly or to any accredited person on or before <strong>Tuesday, April 23, 2024 "BY ORDER OF THE NSAWAM ADOAGYIRI MUNICIPAL ASSEMBLY"</strong>.</li>
+              </ol>
+              <p><strong>Date of issue: Monday, February 12, 2024</strong></p>
+            </div>
+
+            <!-- Signature Section -->
+            <div class="signature" style="margin-top: 40px; text-align: right;">
+                <img src="/images/signature.png" alt="Signature" style="width: 150px; height: auto; display: inline-block;">
+                <p style="margin-top: 10px;">
+                  Municipal Finance Officer<br>
+                  Nsawam Adoagyiri Municipal Assembly
+                </p>
+              </div>
+            
+               <!-- Buttons Section -->
+            <div class="buttons" style="margin-top: 20px; text-align: center;">
+                <button class="btn btn-success" onclick="printBill()">Print</button>
+                <button class="btn btn-primary" onclick="exportPDF()">Export as PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  const bills = [
+    {
+      clientId: 'CL123456',
+      businessId: 'BUS654321',
+      businessName: 'George Agyei',
+      clientName: 'George Agyei',
+      contact: '0244673716',
+      location: 'Nsawam',
+      year: '2024',
+      rate: '60.00',
+      currentBill: '60.00',
+      totalDue: '120.00',
+    },
+  ];
+
+  function searchBill() {
+    const clientId = document.getElementById('clientId').value.trim();
+    const businessId = document.getElementById('businessId').value.trim();
+    const businessName = document.getElementById('businessName').value.trim();
+
+    if (!clientId && !businessId && !businessName) {
+      alert('Please enter at least one search criterion.');
+      return;
+    }
+
+    const bill = bills.find(
+      (b) =>
+        b.clientId === clientId ||
+        b.businessId === businessId ||
+        b.businessName.toLowerCase() === businessName.toLowerCase()
+    );
+
+    if (bill) {
+      const fields = [
+        { id: 'billClientName', value: bill.clientName },
+        { id: 'billContact', value: bill.contact },
+        { id: 'billBusinessName', value: bill.businessName },
+        { id: 'billBusinessId', value: bill.businessId },
+        { id: 'billLocation', value: bill.location },
+        { id: 'billYear', value: bill.year },
+        { id: 'billRate2', value: `GHC ${bill.rate}` },
+        { id: 'billCurrent', value: `GHC ${bill.currentBill}` },
+        { id: 'billTotal', value: `GHC ${bill.totalDue}` },
+        { id: 'billGrandTotal', value: `GHC ${bill.totalDue}` },
+      ];
+
+      fields.forEach(({ id, value }) => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.innerText = value;
+        } else {
+          console.warn(`Element with ID "${id}" not found.`);
+        }
+      });
+
+      document.getElementById('billTemplate').style.display = 'block';
+    } else {
+      alert('No bill found for the provided information.');
+      document.getElementById('billTemplate').style.display = 'none';
+    }
+  }
+
+  function printBill() {
+  const printContent = document.getElementById('billTemplate').innerHTML;
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Print Bill</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            margin: 0;
+          }
+          .bill-container {
+            margin: 0 auto;
+            width: 100%;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          .header-table {
+            width: 100%;
+            margin-bottom: 20px;
+          }
+          .header-table td {
+            vertical-align: middle;
+          }
+          .header-table img {
+            width: 80px;
+            object-fit: contain;
+          }
+          .header-table h2 {
+            font-size: 1.5rem;
+            margin: 0;
+          }
+          .header-table h3 {
+            font-size: 1.2rem;
+            margin: 5px 0;
+          }
+          .header-table p {
+            font-size: 0.9rem;
+            margin: 0;
+          }
+          .details-table th, .details-table td {
+            padding: 8px;
+            text-align: left;
+          }
+          .billing-table th, .billing-table td {
+            border: 1px solid black;
+            padding: 8px;
+          }
+          @media print {
+            body::before {
+              content: "";
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background-image: url('/images/nama.jpeg');
+              background-size: 300px 300px; /* Smaller watermark */
+              background-position: center;
+              background-repeat: no-repeat;
+              opacity: 0.05; /* Faint watermark */
+              z-index: -1;
+            }
+            .buttons {
+              display: none; /* Hide buttons during print */
+            }
+          }
+        </style>
+      </head>
+      <body>${printContent}</body>
+    </html>
+  `);
+  printWindow.document.close();
+  setTimeout(() => printWindow.print(), 500);
+}
+
+
+  async function exportPDF() {
+    alert('PDF export functionality is not yet implemented.');
+  }
+</script>

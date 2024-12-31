@@ -243,7 +243,7 @@ exports.showProperties = async (req, res) => {
     }
 
     exports.getPropertyWithFeeFixing = async(req, res) => {
-        const clientId = req.params.id;
+        const {client_id, property_id} = req.params;
         try{
             const query = `
                 SELECT Properties.property_id, Properties.house_number, Properties.digital_address, entity_type.entity_type_id, entity_type.division, fee_fixing.category, fee_fixing.amount, locations.location
@@ -251,9 +251,9 @@ exports.showProperties = async (req, res) => {
                     LEFT JOIN entity_type ON Properties.entity_type_id = entity_type.entity_type_id
                     LEFT JOIN fee_fixing ON Properties.fee_fixing_id = fee_fixing.fee_fixing_id
                     LEFT JOIN locations ON Properties.location_id = locations.location_id
-                    WHERE client_id = ?
+                    WHERE client_id = ? AND property_id= ?
             `
-            const [property] = await db.query(query, [clientId])
+            const [property] = await db.query(query, [client_id, property_id])
         
            res.render("propertyFeefixing",{property})
         }catch(error){

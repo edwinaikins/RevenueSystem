@@ -40,6 +40,7 @@
                 <th>Description</th>
                 <th>Year</th>
                 <th>Bill Amount</th>
+                <th>Arrears</th>
                 <th>Paid</th>
                 <th>Amount Due</th>
                 <th>Due Date</th>
@@ -69,6 +70,7 @@
                 <th>Description</th>
                 <th>Year</th>
                 <th>Bill Amount</th>
+                <th>Arrears</th>
                 <th>Paid</th>
                 <th>Amount Due</th>
                 <th>Due Date</th>
@@ -85,65 +87,90 @@
   </section>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="confirmPaymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="paymentDetailsModalLabel">Payment Details</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <form id="paymentDetailsForm" novalidate>
-          <div class="modal-body">
-            <!-- Pre-filled Non-editable Fields -->
-            <div class="form-group">
-              <label for="clientIdInput">Client ID</label>
+<!-- Redesigned Modal -->
+<div class="modal fade" id="confirmPaymentModal" tabindex="-1" aria-labelledby="paymentDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="paymentDetailsModalLabel">Confirm Payment Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Form -->
+      <form id="paymentDetailsForm" class="needs-validation" novalidate>
+        <div class="modal-body">
+          <!-- Pre-filled Non-editable Fields Grouped Together -->
+          <div class="mb-3 p-3 border rounded bg-light">
+            <h6 class="text-secondary">Pre-filled Information</h6>
+            <div class="mb-2">
+              <label for="clientIdInput" class="form-label">Client ID</label>
               <input type="text" id="clientIdInput" class="form-control" readonly>
             </div>
-            <div class="form-group">
-                <label for="billIdInput">Bill ID</label>
-                <input type="text" id="billIdInput" class="form-control" readonly>
-              </div>
-            <div class="form-group">
-              <label for="entityTypeInput">Entity Type</label>
+
+            <div class="mb-2">
+              <label for="billIdInput" class="form-label">Bill ID</label>
+              <input type="text" id="billIdInput" class="form-control" readonly>
+            </div>
+
+            <div class="mb-2">
+              <label for="entityTypeInput" class="form-label">Entity Type</label>
               <input type="text" id="entityTypeInput" class="form-control" readonly>
             </div>
-            <!-- Editable Fields -->
-            <div class="form-group">
-              <label for="detailsInput">Details</label>
-              <input type="text" id="detailsInput" class="form-control" placeholder="Enter payment details" required>
-            </div>
-            <div class="form-group">
-              <label for="jcrRefInput">JCR Ref</label>
-              <input type="text" id="jcrRefInput" class="form-control" placeholder="Enter JCR reference" required>
-            </div>
-            <div class="form-group">
-              <label for="paymentDateInput">Payment Date</label>
-              <input type="date" id="paymentDateInput" class="form-control" required>
-            </div>
-            <div class="form-group">
-              <label for="paymentTypeInput">Payment Type</label>
-              <select id="paymentTypeInput" class="form-control" required>
-                <option value="">Select Payment Type</option>
-                <option value="Partial Payment">Partial Payment</option>
-                <option value="Full Payment">Full Payment</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="paymentAmountInput">Amount</label>
-              <input type="number" id="paymentAmountInput" class="form-control" placeholder="Enter payment amount" step="0.01" required>
+
+            <div class="mb-2">
+              <label for="entityIdInput" class="form-label">Entity ID</label>
+              <input type="text" id="entityIdInput" class="form-control" readonly>
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-primary">Submit Payment</button>
+
+          <!-- Editable Fields -->
+          <div class="mb-3">
+            <label for="detailsInput" class="form-label">Details</label>
+            <input type="text" id="detailsInput" class="form-control" placeholder="Enter payment details" required>
+            <div class="invalid-feedback">Please provide payment details.</div>
           </div>
-        </form>
-      </div>
+
+          <div class="mb-3">
+            <label for="jcrRefInput" class="form-label">JCR Reference</label>
+            <input type="text" id="jcrRefInput" class="form-control" placeholder="Enter JCR reference" required>
+            <div class="invalid-feedback">Please provide a valid JCR reference.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="paymentDateInput" class="form-label">Payment Date</label>
+            <input type="date" id="paymentDateInput" class="form-control" required>
+            <div class="invalid-feedback">Please select a valid payment date.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="paymentTypeInput" class="form-label">Payment Type</label>
+            <select id="paymentTypeInput" class="form-select" required>
+              <option value="">Select Payment Type</option>
+              <option value="Partial Payment">Partial Payment</option>
+              <option value="Full Payment">Full Payment</option>
+            </select>
+            <div class="invalid-feedback">Please select a payment type.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="paymentAmountInput" class="form-label">Amount</label>
+            <input type="number" id="paymentAmountInput" class="form-control" placeholder="Enter payment amount" step="0.01" required>
+            <div class="invalid-feedback">Please enter a valid payment amount.</div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Submit Payment</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
+
+
 
 <script>
   let clientDetails = {};
@@ -152,38 +179,51 @@
 
   document.getElementById("searchForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const clientId = document.getElementById("searchValue").value;
+    const clientId = document.getElementById("searchValue").value.trim();
+
+    if (!clientId) {
+      alert("Please enter a valid Client ID.");
+      return;
+    }
 
     try {
       const response = await fetch(`/payment/getClientPaymentData?client_id=${clientId}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
       const result = await response.json();
       if (result.success) {
-        clientDetails = result.client;
+        clientDetails = result.client || {};
         businessPayments = result.businessPayments || [];
         propertyPayments = result.propertyPayments || [];
+
         renderClientDetails();
         renderBusinessPayments();
         renderPropertyPayments();
       } else {
-        alert("Client not found");
+        alert("Client not found. Please check the Client ID and try again.");
       }
     } catch (error) {
       console.error("Error fetching client data:", error);
-      alert("An error occurred while fetching client data.");
+      alert("An error occurred while fetching client data. Please try again.");
     }
   });
 
   function renderClientDetails() {
     const container = document.getElementById("clientDetailsContainer");
+    if (!clientDetails.firstname || !clientDetails.lastname) {
+      container.innerHTML = "<p>No client details available.</p>";
+      return;
+    }
+
     container.innerHTML = `
       <div class="card">
         <div class="card-header">
           <h3>Client Details</h3>
         </div>
         <div class="card-body">
-          <p><strong>Name:</strong> ${clientDetails.firstname} ${clientDetails.lastname}</p>
-          <p><strong>Email:</strong> ${clientDetails.email}</p>
-          <p><strong>Phone:</strong> ${clientDetails.contact}</p>
+          <p><strong>Name:</strong> ${sanitize(clientDetails.firstname)} ${sanitize(clientDetails.lastname)}</p>
+          <p><strong>Email:</strong> ${sanitize(clientDetails.email || "N/A")}</p>
+          <p><strong>Phone:</strong> ${sanitize(clientDetails.contact || "N/A")}</p>
         </div>
       </div>
     `;
@@ -191,86 +231,154 @@
 
   function renderBusinessPayments() {
     const table = document.getElementById("businessPaymentsTable");
-    table.innerHTML = businessPayments
-      .map(
-        (payment) => `
+    table.innerHTML = businessPayments.length
+      ? businessPayments.map((payment) => `
         <tr>
-          <td>${payment.business_id}</td>
-          <td>${payment.business_name}</td>
+          <td>${sanitize(payment.business_id)}</td>
+          <td>${sanitize(payment.business_name)}</td>
           <td>Business Operating Permit</td>
-          <td>${payment.year}</td>
-          <td>${payment.total_amount}</td>
-          <td>${payment.total_payments}</td>
-          <td>${payment.total_amount - payment.total_payments}</td>
-          <td>${payment.formatted_due_date}</td>
+          <td>${sanitize(payment.year)}</td>
+          <td>${sanitize(payment.total_amount)}</td>
+          <td>${sanitize(payment.arrears)}</td>
+          <td>${sanitize(payment.total_payments)}</td>
+          <td>${sanitize((Number(payment.total_amount) || 0) + (Number(payment.arrears) || 0) - (Number(payment.total_payments) || 0))}</td>
+          <td>${sanitize(payment.formatted_due_date)}</td>
           <td>
-            <button class="btn btn-sm btn-primary" onclick="openPaymentModal('${clientDetails.client_id}','${payment.bill_id}', '${payment.entity_type}')">Pay</button>
+            <button class="btn btn-sm btn-primary" onclick="openPaymentModal('${sanitize(clientDetails.client_id)}', '${sanitize(payment.bill_id)}', '${sanitize(payment.entity_type)}','${sanitize(payment.business_id)}')">Pay</button>
           </td>
-        </tr>
-      `
-      )
-      .join("");
+        </tr>`).join("")
+      : "<tr><td colspan='9'>No business payments available.</td></tr>";
   }
 
   function renderPropertyPayments() {
     const table = document.getElementById("propertyPaymentsTable");
-    table.innerHTML = propertyPayments
-      .map(
-        (payment) => `
+    table.innerHTML = propertyPayments.length
+      ? propertyPayments.map((payment) => `
         <tr>
-          <td>${payment.property_id}</td>
-          <td>${payment.house_number}</td>
+          <td>${sanitize(payment.property_id)}</td>
+          <td>${sanitize(payment.house_number)}</td>
           <td>Property Rate</td>
-          <td>${payment.year}</td>
-          <td>${payment.total_amount}</td>
-          <td>${payment.total_payments}</td>
-          <td>${payment.total_amount - payment.total_payments}</td>
-          <td>${payment.formatted_due_date}</td>
+          <td>${sanitize(payment.year)}</td>
+          <td>${sanitize(payment.total_amount)}</td>
+          <td>${sanitize(payment.arrears)}</td>
+          <td>${sanitize(payment.total_payments)}</td>
+          <td>${sanitize((Number(payment.total_amount) || 0) + (Number(payment.arrears) || 0) - (Number(payment.total_payments) || 0))}</td>
+          <td>${sanitize(payment.formatted_due_date)}</td>
           <td>
-            <button class="btn btn-sm btn-primary" onclick="openPaymentModal('${clientDetails.client_id}','${payment.bill_id}' '${payment.entity_type}')">Pay</button>
+            <button class="btn btn-sm btn-primary" onclick="openPaymentModal('${sanitize(clientDetails.client_id)}', '${sanitize(payment.bill_id)}', '${sanitize(payment.entity_type)}', '${sanitize(payment.property_id)}')">Pay</button>
           </td>
-        </tr>
-      `
-      )
-      .join("");
+        </tr>`).join("")
+      : "<tr><td colspan='9'>No property payments available.</td></tr>";
   }
 
-  function openPaymentModal(clientId, billId, entityType) {
+  function openPaymentModal(clientId, billId, entityType, entityId) {
     document.getElementById("clientIdInput").value = clientId;
     document.getElementById("billIdInput").value = billId;
     document.getElementById("entityTypeInput").value = entityType;
+    document.getElementById("entityIdInput").value = entityId;
     $('#confirmPaymentModal').modal('show');
   }
 
-  document.getElementById("paymentDetailsForm").addEventListener("submit", function (e) {
+
+  document.getElementById("paymentDetailsForm").addEventListener("submit", async function (e) {
     e.preventDefault();
+    
+    // Clear previous error messages
+    const fields = document.querySelectorAll("#paymentDetailsForm .form-control, .form-select");
+    fields.forEach(field => {
+      field.classList.remove("is-invalid");
+      const errorElement = field.nextElementSibling;
+      if (errorElement && errorElement.classList.contains("error-message")) {
+        errorElement.remove();
+      }
+    });
+
+    // Validate mandatory fields
+    let isValid = true;
+    const mandatoryFields = [
+      { id: "detailsInput", message: "Details are required." },
+      { id: "jcrRefInput", message: "JCR Reference is required." },
+      { id: "paymentDateInput", message: "Payment Date is required." },
+      { id: "paymentTypeInput", message: "Please select a payment type." },
+      { id: "paymentAmountInput", message: "Please enter a valid payment amount greater than 0." }
+    ];
+
+    mandatoryFields.forEach(({ id, message }) => {
+      const field = document.getElementById(id);
+      const value = field.value.trim();
+      if (!value || (id === "paymentAmountInput" && (isNaN(value) || value <= 0))) {
+        isValid = false;
+        field.classList.add("is-invalid");
+        const errorElement = document.createElement("div");
+        errorElement.className = "invalid-feedback error-message";
+        errorElement.textContent = message;
+        field.parentElement.appendChild(errorElement);
+      }
+    });
+
+    if (!isValid) {
+      alert("Please correct the highlighted fields before submitting.");
+      return;
+    }
+
+    // Prepare payload
+
+    // Get the value of the input
+    const paymentDateValue = document.getElementById("paymentDateInput").value;
+
+    // Create a Date object
+    const paymentDate = new Date(paymentDateValue);
+
+    // Extract the year
+    const year = paymentDate.getFullYear();
+
     const payload = {
-      client_id: document.getElementById("clientIdInput").value,
-      bill_id: document.getElementById("billIdInput").value,
-      entity_type: document.getElementById("entityTypeInput").value,
-      details: document.getElementById("detailsInput").value,
-      jcr_ref: document.getElementById("jcrRefInput").value,
+      client_id: document.getElementById("clientIdInput").value.trim(),
+      bill_id: document.getElementById("billIdInput").value.trim(),
+      entity_type: document.getElementById("entityTypeInput").value.trim(),
+      entity_id: document.getElementById("entityIdInput").value.trim(),
+      details: document.getElementById("detailsInput").value.trim(),
+      jcr_ref: document.getElementById("jcrRefInput").value.trim(),
+      year: year,
       payment_date: document.getElementById("paymentDateInput").value,
       payment_type: document.getElementById("paymentTypeInput").value,
       amount: parseFloat(document.getElementById("paymentAmountInput").value),
     };
+    console.log(payload)
+    try {
+      const response = await fetch("/payment/createPayment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    fetch("/payment/createPayment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    })
-      .then((response) => response.json())
-      .then((data) => {
+      const data = await response.json();
+      console.log(data)
+      if (data.success) {
         $('#confirmPaymentModal').modal('hide');
         alert("Payment successfully submitted!");
-      })
-      .catch((error) => {
-        console.error("Error submitting payment:", error);
+      } else {
         alert("Failed to submit payment. Please try again.");
-      });
+      }
+    } catch (error) {
+      console.error("Error submitting payment:", error);
+      alert("An unexpected error occurred while submitting payment.");
+    }
   });
+
+
+  function sanitize(value) {
+    return String(value).replace(/[&<>"'/]/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+      "/": "&#x2F;",
+    }[char]));
+  }
 </script>
+
 
 <!-- Include jQuery and Bootstrap -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

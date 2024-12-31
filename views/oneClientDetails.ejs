@@ -256,7 +256,7 @@
                                         <td>
                                             <button class="btn btn-sm btn-info">Edit</button>
                                             <button class="btn btn-sm btn-danger">Delete</button>
-                                            <button class="btn btn-sm btn-secondary" onclick="window.location.href='/business/businessFee/<%= client.client_id %>';">Fee Fixing</button>
+                                            <button class="btn btn-sm btn-secondary" onclick="window.location.href='/business/businessFee/<%= client.client_id %>/<%= business.business_id %>';">Fee Fixing</button>
                                         </td>
                                     </tr>
                                 <% }); %>
@@ -295,7 +295,7 @@
                                         <td>
                                             <button class="btn btn-sm btn-info">Edit</button>
                                             <button class="btn btn-sm btn-danger">Delete</button>
-                                            <button class="btn btn-sm btn-secondary" onclick="window.location.href='/property/propertyFee/<%= client.client_id %>';">Fee Fixing</button>
+                                            <button class="btn btn-sm btn-secondary" onclick="window.location.href='/property/propertyFee/<%= client.client_id %>/<%= property.property_id %>';">Fee Fixing</button>
                                         </td>
                                     </tr>
                                 <% }); %>

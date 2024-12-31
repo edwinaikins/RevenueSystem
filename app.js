@@ -15,6 +15,7 @@ const settingsRoute = require("./routes/settingsRoute");
 const propertyRoute = require("./routes/propertyRoute");
 const billingRoute = require("./routes/billingRoute");
 const paymentRoute = require("./routes/paymentRoute");
+const reportRoute = require("./routes/reportRoute")
 const app = express();
 
 app.use(expressLayouts);
@@ -47,6 +48,7 @@ app.use("/settings", settingsRoute);
 app.use("/property", propertyRoute);
 app.use("/billing", billingRoute);
 app.use("/payment", paymentRoute);
+app.use("/report", reportRoute);
 
   
 app.use(errorHandler)

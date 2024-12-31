@@ -11,7 +11,7 @@ router.get("/api/businesses", businessController.apiBusiness);
 router.put("/feefixing/:id", businessController.feeFixing);
 router.get("/feefixing/:id", businessController.getFeeFixing);
 router.get("/feefixingWithBusinessType/:id", businessController.getFeeFixingWithBusinessType); 
-router.get("/businessFee/:id", businessController.getBusinessWithFeeFixing); //show Feefixing Page
+router.get("/businessFee/:client_id/:business_id", businessController.getBusinessWithFeeFixing); //show Feefixing Page
 
 
 module.exports = router;

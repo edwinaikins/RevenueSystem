@@ -265,7 +265,7 @@ exports.showBusinesses = async (req, res) => {
     }
 
     exports.getBusinessWithFeeFixing = async(req, res) => {
-        const businessId = req.params.id;
+        const {client_id, business_id}  = req.params;
         try{
             const query = `
                 SELECT businesses.business_id, businesses.business_name, businesses.business_contact, businesses.business_activity, businesses.business_structure, businesses.business_size, entity_type.entity_type_id, entity_type.division, fee_fixing.category, fee_fixing.amount, locations.location
@@ -273,10 +273,10 @@ exports.showBusinesses = async (req, res) => {
                     LEFT JOIN entity_type ON businesses.entity_type_id = entity_type.entity_type_id
                     LEFT JOIN fee_fixing ON businesses.fee_fixing_id = fee_fixing.fee_fixing_id
                     LEFT JOIN locations ON businesses.location_id = locations.location_id
-                    WHERE client_id = ?
+                    WHERE client_id = ? AND business_id = ?
             `
-            const [business] = await db.query(query, [businessId])
-        
+            const [business] = await db.query(query, [client_id, business_id])
+    
            res.render("businessFeefixing",{business})
         }catch(error){
             console.error(error)

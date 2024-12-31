@@ -33,15 +33,13 @@
   </section>
 </div>
 
-<!-- Modals -->
-<div class="modal fade" id="editMainItemModal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
+<!-- Edit Main Item Modal -->
+<div class="modal fade" id="editMainItemModal" tabindex="-1" aria-labelledby="editMainItemModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Edit Main Item</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="editMainItemModalLabel">Edit Main Item</h5>
+        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="editMainItemForm">
         <div class="modal-body">
@@ -50,8 +48,8 @@
             <input type="number" id="editMainItemAmount" class="form-control" step="0.01" min="0" required>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <div class="modal-footer justify-content-between">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           <button type="submit" class="btn btn-primary">Save Changes</button>
         </div>
       </form>
@@ -59,34 +57,34 @@
   </div>
 </div>
 
-<div class="modal fade" id="editExtraItemModal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
+<!-- Edit/Add Extra Item Modal -->
+<div class="modal fade" id="editExtraItemModal" tabindex="-1" aria-labelledby="editExtraItemModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Edit/Add Extra Item</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="editExtraItemModalLabel">Edit/Add Extra Item</h5>
+        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="editExtraItemForm">
         <div class="modal-body">
           <div class="form-group">
             <label for="editExtraItemDescription">Description</label>
-            <textarea id="editExtraItemDescription" class="form-control" required></textarea>
+            <textarea id="editExtraItemDescription" class="form-control" rows="3" required></textarea>
           </div>
           <div class="form-group">
             <label for="editExtraItemAmount">Amount</label>
             <input type="number" id="editExtraItemAmount" class="form-control" step="0.01" min="0" required>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <div class="modal-footer justify-content-between">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           <button type="submit" class="btn btn-primary">Save Item</button>
         </div>
       </form>
     </div>
   </div>
 </div>
+
 
 <script>
   let clientDetails = {};
@@ -173,6 +171,8 @@
           <select id="yearSelect-${entity.entity_id}" class="form-control">
             ${generateYearOptions()}
           </select>
+        <label for="dueDate-${entity.entity_id}" class="mr-2">Due Date:</label>
+        <input type="date" id="dueDate-${entity.entity_id}" class="form-control">
         </div>
       </div>
       <div class="card-body">
@@ -325,7 +325,7 @@ window.saveEntityBill = async function (entityId, entityType, replace = false) {
   // Get the selected year safely
   const yearSelect = document.getElementById(`yearSelect-${entityId}`);
   const year = yearSelect ? yearSelect.value : new Date().getFullYear();
-
+  const due_date = document.getElementById(`dueDate-${entityId}`).value;
   // Safeguard for extra items (default to an empty array)
   const fees = extraItems[entityId] || [];
 
@@ -339,6 +339,7 @@ window.saveEntityBill = async function (entityId, entityType, replace = false) {
       entity_id: entity.entity_id,
       entity_type: entityType, // "Business" or "Property"
       year: year,
+      due_date: due_date,
       description: mainDescription,
       amount: entity.amount || 0, // Default amount if undefined
     },
