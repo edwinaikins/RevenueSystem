@@ -59,12 +59,12 @@ exports.registerBusiness = async (req, res) => {
             "SELECT location_code FROM locations WHERE location_id = ?",
             [location_id]
         );
-
+        console.log(locationResults)
         if (locationResults.length === 0) {
             return res.status(400).send("Invalid location_id. Location not found.");
         }
 
-        const locationCode = locationResults[0].location_code;
+        const locationCode = locationResults[0].location_code.toString().padStart(3, '0');
 
         // Step 2: Get the latest business_id for this location_code
         // We assume the format is always 'NAMA-<locationCode>-<XXXX>'

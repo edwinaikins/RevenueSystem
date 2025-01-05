@@ -10,6 +10,6 @@ router.get("/delete/:id", clientController.deleteClient);
 router.post("/update/:id", clientController.updateClient);
 router.get("/clientDetails/:id", clientController.getClientDetails)
 router.get('/search', clientController.searchClients);
-router.get("/showClients", clientController.showClients)
+router.get("/showClients", clientController.showClients);
 
 module.exports = router;

@@ -16,6 +16,8 @@ const propertyRoute = require("./routes/propertyRoute");
 const billingRoute = require("./routes/billingRoute");
 const paymentRoute = require("./routes/paymentRoute");
 const reportRoute = require("./routes/reportRoute")
+const dashboardRoute = require("./routes/dashboardRoute")
+const collectorRoute = require("./routes/collectorRoute")
 const app = express();
 
 app.use(expressLayouts);
@@ -49,8 +51,9 @@ app.use("/property", propertyRoute);
 app.use("/billing", billingRoute);
 app.use("/payment", paymentRoute);
 app.use("/report", reportRoute);
-
+app.use("/dashboard", dashboardRoute);
+app.use("/collector", collectorRoute);
   
-app.use(errorHandler)
+app.use(errorHandler);
 
 app.listen(PORT, ()=> console.log(`Server listening on http://localhost:${PORT}`))

@@ -48,7 +48,7 @@ exports.authUser = (req, res, next) => {
                 console.error("Login error:", err); // Log login errors
                 return next(err);
             }
-            return res.redirect('/user/dashboard');
+            return res.redirect('/dashboard');
         });
     })(req, res, next);
 };

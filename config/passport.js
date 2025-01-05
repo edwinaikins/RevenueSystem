@@ -37,14 +37,20 @@ module.exports = function (passport) {
   // Deserialize user to retrieve user details by ID
   passport.deserializeUser(async (id, done) => {
     try {
-      const [results] = await db.query("SELECT * FROM users WHERE id = ?", [id]);
-      if (results.length === 0) {
-        return done(null, false);
-      }
-      done(null, results[0]);
-    } catch (err) {
-      console.error("Error during deserialization:", err);
-      done(err);
+        const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [id]);
+        if (rows.length > 0) {
+            return done(null, rows[0]);
+        } else {
+            return done(null, false);
+        }
+    } catch (error) {
+        console.error('Error during user deserialization:', error);
+
+        // Handle ECONNRESET specifically
+        if (error.code === 'ECONNRESET') {
+            return done(new Error('Database connection was reset. Please try again.'));
+        }
+        return done(error);
     }
-  });
+});
 };

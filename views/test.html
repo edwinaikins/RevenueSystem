@@ -1,183 +1,413 @@
-<div class="content-wrapper">
-  <!-- Content Header -->
-  <section class="content-header">
-    <div class="container-fluid">
-      <div class="row mb-2">
-        <div class="col-sm-6">
-          <h1>Search Client Bill</h1>
-        </div>
-        <div class="col-sm-6">
-          <ol class="breadcrumb float-sm-right">
-            <li class="breadcrumb-item"><a href="#">Home</a></li>
-            <li class="breadcrumb-item active">Search Client Bill</li>
-          </ol>
-        </div>
-      </div>
-    </div>
-  </section>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <!-- AdminLTE CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <!-- Fonts and Styles -->
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css">
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.3.0/styles/overlayscrollbars.min.css">
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css">
+   <link rel="stylesheet" href="/dist/css/adminlte.css">
+  <style>
+    /* Scrollable table for agents */
+    .scrollable-table {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+    <div class="app-wrapper">
+       <nav class="app-header navbar navbar-expand bg-body">
+           <div class="container-fluid">
+             <!-- Sidebar Toggle -->
+             <ul class="navbar-nav">
+               <li class="nav-item">
+                 <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button">
+                   <i class="bi bi-list"></i>
+                 </a>
+               </li>
+               <li class="nav-item d-none d-md-block"><a href="#" class="nav-link">Home</a></li>
+               <li class="nav-item d-none d-md-block"><a href="#" class="nav-link">Contact</a></li>
+             </ul>
+         
+             <!-- Right Navbar Links -->
+             <ul class="navbar-nav ms-auto">
+               <!-- Search Icon -->
+               <li class="nav-item"><a class="nav-link" data-widget="navbar-search" href="#"><i class="bi bi-search"></i></a></li>
+               <!-- Messages Dropdown -->
+               <li class="nav-item dropdown">
+                 <a class="nav-link" data-bs-toggle="dropdown" href="#">
+                   <i class="bi bi-chat-text"></i> <span class="navbar-badge badge text-bg-danger">3</span>
+                 </a>
+                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+                   <!-- Message items here -->
+                   <a href="#" class="dropdown-item">See All Messages</a>
+                 </div>
+               </li>
+               <!-- Notifications Dropdown -->
+               <li class="nav-item dropdown">
+                 <a class="nav-link" data-bs-toggle="dropdown" href="#">
+                   <i class="bi bi-bell-fill"></i> <span class="navbar-badge badge text-bg-warning">15</span>
+                 </a>
+                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+                   <!-- Notification items here -->
+                   <a href="#" class="dropdown-item">See All Notifications</a>
+                 </div>
+               </li>
+               <!-- User Profile Dropdown -->
+               <!-- <li class="nav-item dropdown">
+                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">
+                   <img src="/dist/assets/img/user2-160x160.jpg" class="user-image rounded-circle" alt="User Image"> <span class="d-none d-md-inline">Alexander Pierce</span>
+                 </a>
+                 <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+                   <li class="user-header text-bg-primary">
+                     <img src="/dist/assets/img/user2-160x160.jpg" class="rounded-circle" alt="User Image">
+                     <p>Alexander Pierce - Web Developer</p>
+                   </li>
+                   <li class="user-footer">
+                     <a href="#" class="btn btn-default btn-flat">Profile</a>
+                     <a href="#" class="btn btn-default btn-flat float-end">Sign out</a>
+                   </li>
+                 </ul>
+               </li> -->
+             </ul>
+           </div>
+         </nav>
+         
+         <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+           <!-- Sidebar Brand -->
+           <div class="sidebar-brand">
+               <a href="/" class="brand-link">
+                   <img src="/dist/assets/img/AdminLTELogo.png" alt="NAMA Logo" class="brand-image opacity-75 shadow">
+                   <span class="brand-text fw-light">RMS</span>
+               </a>
+           </div>
+         
+            <!-- Sidebar Menu -->
+     <div class="sidebar-wrapper">
+       <nav class="mt-2">
+           <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+               <!-- Dashboard -->
+               <li class="nav-item">
+                   <a href="/dashboard" class="nav-link active">
+                       <i class="nav-icon bi bi-speedometer"></i>
+                       <p>Dashboard</p>
+                   </a>
+               </li>
+   
+               <!-- Clients -->
+               <li class="nav-item">
+                   <a href="/client/getall" class="nav-link">
+                       <i class="nav-icon bi bi-people"></i>
+                       <p>Clients</p>
+                   </a>
+               </li>
+   
+               <!-- Grouped: Businesses, Properties, Signages -->
+               <li class="nav-item">
+                   <a href="#" class="nav-link">
+                       <i class="nav-icon bi bi-collection"></i>
+                       <p>
+                           Client Assets
+                           <i class="nav-arrow bi bi-chevron-right"></i>
+                       </p>
+                   </a>
+                   <ul class="nav nav-treeview">
+                       <li class="nav-item"><a href="/business/showBusinesses" class="nav-link">Businesses</a></li>
+                       <li class="nav-item"><a href="/property/showProperties" class="nav-link">Properties</a></li>
+                       <li class="nav-item"><a href="/signages" class="nav-link">Signages</a></li>
+                   </ul>
+               </li>
+   
+               <!-- Billing -->
+               <li class="nav-item">
+                   <a href="/billing" class="nav-link">
+                       <i class="nav-icon bi bi-receipt"></i>
+                       <p>Billing</p>
+                   </a>
+               </li>
+   
+               <!-- Payment -->
+               <li class="nav-item">
+                   <a href="/payment/showPaymentPage" class="nav-link">
+                       <i class="nav-icon bi bi-credit-card"></i>
+                       <p>Payment</p>
+                   </a>
+               </li>
+   
+               <!-- Approve Payment -->
+               <li class="nav-item">
+                 <a href="/payment/showPaymentApprovalPage" class="nav-link">
+                     <i class="nav-icon bi bi-clipboard-check"></i>
+                     <p>Approve Payment</p>
+                 </a>
+             </li>
+   
+             <!-- Revenue Collectors -->
+             <li class="nav-item">
+                 <a href="#" class="nav-link">
+                     <i class="nav-icon bi bi-people-fill"></i>
+                   <p> Revenue Collector
+                     <i class="nav-arrow bi bi-chevron-right"></i>
+                   </p>
+                 </a>
+                 <ul class="nav nav-treeview">
+                   <li class="nav-item"><a href="/collector/" class="nav-link">Add Collector</a></li>
+                   <li class="nav-item"><a href="/collector/collectorBills" class="nav-link">Manage Collector Bills</a></li>
+               </ul>
+             </li>
+   
+               <!-- Reports -->
+               <li class="nav-item">
+                   <a href="#" class="nav-link">
+                       <i class="nav-icon bi bi-graph-up"></i>
+                     <p> Reports
+                       <i class="nav-arrow bi bi-chevron-right"></i>
+                     </p>
+                   </a>
+                   <ul class="nav nav-treeview">
+                     <li class="nav-item"><a href="/report/businessBillReport" class="nav-link">Business Bill</a></li>
+                     <li class="nav-item"><a href="/report/propertyBillReport" class="nav-link">Property Bill</a></li>
+                 </ul>
+               </li>
+               
+   
+               <!-- Settings -->
+               <li class="nav-item">
+                   <a href="/settings" class="nav-link">
+                       <i class="nav-icon bi bi-gear"></i>
+                       <p>Settings</p>
+                   </a>
+               </li>
+   
+               <!-- User Management -->
+               <li class="nav-item">
+                   <a href="/user/user-management" class="nav-link">
+                       <i class="nav-icon bi bi-person-badge"></i>
+                       <p>User Management</p>
+                   </a>
+               </li>
+           </ul>
+       </nav>
+   </div>
+   </aside>
 
-  <!-- Main Content -->
-  <section class="content">
-    <div class="container-fluid">
-      <!-- Search Form -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">Search Bill</h3>
-        </div>
-        <div class="card-body">
-          <form id="searchForm">
-            <div class="row">
-              <div class="col-md-4">
-                <label for="clientId">Client ID</label>
-                <input type="text" id="clientId" class="form-control" placeholder="Enter Client ID">
-              </div>
-              <div class="col-md-4">
-                <label for="businessId">Business ID</label>
-                <input type="text" id="businessId" class="form-control" placeholder="Enter Business ID">
-              </div>
-              <div class="col-md-4">
-                <label for="businessName">Business Name</label>
-                <input type="text" id="businessName" class="form-control" placeholder="Enter Business Name">
-              </div>
-            </div>
-            <div class="row mt-3">
-              <div class="col-md-12 text-right">
-                <button type="button" class="btn btn-primary" onclick="searchBill()">Search</button>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
 
-      <!-- Bill Details -->
-      <div class="card" id="billCard" style="display: none;">
-        <div class="card-header">
-          <h3 class="card-title">Bill Details</h3>
-        </div>
-        <div class="card-body">
-          <table class="table table-bordered">
-            <tr>
-              <th>Client Name</th>
-              <td id="billClientName"></td>
-              <th>Contact</th>
-              <td id="billContact"></td>
-            </tr>
-            <tr>
-              <th>Business Name</th>
-              <td id="billBusinessName"></td>
-              <th>Business ID</th>
-              <td id="billBusinessId"></td>
-            </tr>
-            <tr>
-              <th>Location</th>
-              <td id="billLocation"></td>
-              <th>Total Due</th>
-              <td id="billTotalDue"></td>
-            </tr>
-          </table>
-          <div class="text-right mt-3">
-            <button class="btn btn-success" onclick="printBill()">Print</button>
-            <button class="btn btn-primary" onclick="exportPDF()">Export as PDF</button>
+      <!-- Content Header -->
+      <div class="content-header">
+        <div class="container-fluid">
+          <div class="row mb-2">
+            <div class="col-sm-6">
+              <h1 class="m-0">Revenue Dashboard</h1>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-</div>
 
-<script>
-  // Sample bill data for testing
-  const bills = [
-    {
-      clientId: 'CL123456',
-      businessId: 'BUS654321',
-      businessName: 'George Agyei',
-      clientName: 'George Agyei',
-      contact: '0244673716',
-      location: 'Nsawam',
-      totalDue: '120.00',
-    },
-    {
-      clientId: 'CL789012',
-      businessId: 'BUS321654',
-      businessName: 'Ama Ventures',
-      clientName: 'Ama Serwaa',
-      contact: '0557891234',
-      location: 'Nsawam',
-      totalDue: '200.00',
-    },
-  ];
+      <!-- Main Content -->
+      <div class="content">
+        <div class="container-fluid">
+          <!-- KPIs -->
+          <div class="row">
+            <div class="col-lg-3 col-6">
+              <div class="small-box bg-info">
+                <div class="inner">
+                  <h3 id="total-bills">200</h3>
+                  <p>Total Bills</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-file-invoice"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-6">
+              <div class="small-box bg-success">
+                <div class="inner">
+                  <h3 id="total-revenue">50,000</h3>
+                  <p>Total Revenue (GH₵)</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-dollar-sign"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-6">
+              <div class="small-box bg-warning">
+                <div class="inner">
+                  <h3 id="total-collected">40,000</h3>
+                  <p>Total Collected (GH₵)</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-coins"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-6">
+              <div class="small-box bg-danger">
+                <div class="inner">
+                  <h3 id="total-outstanding">10,000</h3>
+                  <p>Total Outstanding (GH₵)</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-exclamation-circle"></i>
+                </div>
+              </div>
+            </div>
+          </div>
 
-  // Search for a bill
-  function searchBill() {
-    const clientId = document.getElementById('clientId').value.trim();
-    const businessId = document.getElementById('businessId').value.trim();
-    const businessName = document.getElementById('businessName').value.trim().toLowerCase();
+          <!-- Bill Distribution and Revenue Sources in One Card -->
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Bill Distribution and Revenue Sources</h3>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-lg-6">
+                      <h5>Bill Distribution</h5>
+                      <canvas id="billChart"></canvas>
+                    </div>
+                    <div class="col-lg-6">
+                      <h5>Revenue Sources</h5>
+                      <canvas id="revenueChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-    const bill = bills.find(
-      (b) =>
-        b.clientId === clientId ||
-        b.businessId === businessId ||
-        b.businessName.toLowerCase() === businessName
-    );
+          <!-- Revenue Trends and Agent Productivity Side by Side -->
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Revenue Trends (Monthly)</h3>
+                </div>
+                <div class="card-body">
+                  <canvas id="revenueTrendsChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Revenue Collectors Productivity</h3>
+                </div>
+                <div class="card-body scrollable-table">
+                  <table class="table table-bordered">
+                    <thead>
+                      <tr>
+                        <th>Revenue Collector's Name</th>
+                        <th>Collected (GH₵)</th>
+                        <th>Bills Served</th>
+                        <th>Bills Assigned</th>
+                      </tr>
+                    </thead>
+                    <tbody id="agentsTable">
+                      <tr>
+                        <td>Loading...</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>0</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    if (bill) {
-      // Populate bill details
-      document.getElementById('billClientName').innerText = bill.clientName;
-      document.getElementById('billContact').innerText = bill.contact;
-      document.getElementById('billBusinessName').innerText = bill.businessName;
-      document.getElementById('billBusinessId').innerText = bill.businessId;
-      document.getElementById('billLocation').innerText = bill.location;
-      document.getElementById('billTotalDue').innerText = `GHC ${bill.totalDue}`;
-      document.getElementById('billCard').style.display = 'block';
-    } else {
-      alert('No bill found for the provided information.');
-      document.getElementById('billCard').style.display = 'none';
-    }
-  }
 
-  // Print the bill
-  function printBill() {
-    const printContent = document.getElementById('billCard').innerHTML;
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-      <html>
-        <head><title>Print Bill</title></head>
-        <body>${printContent}</body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
-  }
+  <!-- Scripts -->
+  <script>
+    // Mock Data
+    const agentsData = [
+      { name: 'Agent A', revenueCollected: 15000, billsServed: 45, billsAssigned: 50 },
+      { name: 'Agent B', revenueCollected: 12000, billsServed: 38, billsAssigned: 40 },
+      { name: 'Agent C', revenueCollected: 13000, billsServed: 55, billsAssigned: 60 },
+      { name: 'Agent D', revenueCollected: 5000, billsServed: 20, billsAssigned: 30 },
+      { name: 'Agent E', revenueCollected: 8000, billsServed: 25, billsAssigned: 35 },
+      { name: 'Agent F', revenueCollected: 2000, billsServed: 10, billsAssigned: 15 },
+      // Add remaining agents
+    ];
 
-  // Export the bill as a PDF
-  async function exportPDF() {
-    const bill = {
-      clientName: document.getElementById('billClientName').innerText,
-      contact: document.getElementById('billContact').innerText,
-      businessName: document.getElementById('billBusinessName').innerText,
-      businessId: document.getElementById('billBusinessId').innerText,
-      location: document.getElementById('billLocation').innerText,
-      totalDue: document.getElementById('billTotalDue').innerText,
-    };
+    const revenueTrendsData = [5000, 7000, 8000, 12000, 9000, 15000, 20000, 18000, 17000, 25000, 30000, 28000];
 
-    // Send bill data to the backend for PDF generation (dummy example)
-    try {
-      const response = await fetch('/api/export-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bill),
-      });
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Client_Bill.pdf';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } catch (error) {
-      console.error('Error exporting PDF:', error);
-    }
-  }
-</script>
+    // Populate Agents Table
+    const agentsTable = document.getElementById('agentsTable');
+    agentsTable.innerHTML = agentsData
+      .map(agent => `
+        <tr>
+          <td>${agent.name}</td>
+          <td>${agent.revenueCollected.toFixed(2)}</td>
+          <td>${agent.billsServed}</td>
+          <td>${agent.billsAssigned}</td>
+        </tr>
+      `)
+      .join('');
+
+    // Populate Bill Distribution Chart
+    const billChartCtx = document.getElementById('billChart').getContext('2d');
+    new Chart(billChartCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Printed', 'Served', 'Collected'],
+        datasets: [
+          {
+            label: 'Properties',
+            data: [60, 50, 40],
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+          },
+          {
+            label: 'Businesses',
+            data: [70, 60, 50],
+            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+          },
+        ],
+      },
+    });
+
+    // Populate Revenue Sources Chart
+    const revenueChartCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueChartCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Properties', 'Businesses'],
+        datasets: [
+          {
+            data: [30000, 20000],
+            backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(255, 99, 132, 0.5)'],
+          },
+        ],
+      },
+    });
+
+    // Populate Revenue Trends Chart
+    const revenueTrendsCtx = document.getElementById('revenueTrendsChart').getContext('2d');
+    new Chart(revenueTrendsCtx, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+          label: 'Revenue (GH₵)',
+          data: revenueTrendsData,
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        }],
+      },
+    });
+  </script>
+</body>
+</html>

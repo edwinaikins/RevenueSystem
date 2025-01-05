@@ -84,85 +84,116 @@
             </a>
         </div>
       
-        <!-- Sidebar Menu -->
-        <div class="sidebar-wrapper">
-            <nav class="mt-2">
-                <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
-                    <!-- Dashboard -->
-                    <li class="nav-item">
-                        <a href="/user/dashboard" class="nav-link active">
-                            <i class="nav-icon bi bi-speedometer"></i>
-                            <p>Dashboard</p>
-                        </a>
-                    </li>
-      
-                    <!-- Clients -->
-                    <li class="nav-item">
-                        <a href="/client/getall" class="nav-link">
-                            <i class="nav-icon bi bi-people"></i>
-                            <p>Clients</p>
-                        </a>
-                    </li>
-      
-                    <!-- Grouped: Businesses, Properties, Signages -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon bi bi-collection"></i>
-                            <p>
-                                Client Assets
-                                <i class="nav-arrow bi bi-chevron-right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item"><a href="/businesses" class="nav-link">Businesses</a></li>
-                            <li class="nav-item"><a href="/properties" class="nav-link">Properties</a></li>
-                            <li class="nav-item"><a href="/signages" class="nav-link">Signages</a></li>
-                        </ul>
-                    </li>
-      
-                    <!-- Billing -->
-                    <li class="nav-item">
-                        <a href="/billing" class="nav-link">
-                            <i class="nav-icon bi bi-receipt"></i>
-                            <p>Billing</p>
-                        </a>
-                    </li>
-      
-                    <!-- Payment -->
-                    <li class="nav-item">
-                        <a href="/payment" class="nav-link">
-                            <i class="nav-icon bi bi-credit-card"></i>
-                            <p>Payment</p>
-                        </a>
-                    </li>
-      
-                    <!-- Reports -->
-                    <li class="nav-item">
-                        <a href="/reports" class="nav-link">
-                            <i class="nav-icon bi bi-graph-up"></i>
-                            <p>Reports</p>
-                        </a>
-                    </li>
-      
-                    <!-- Settings -->
-                    <li class="nav-item">
-                        <a href="/settings" class="nav-link">
-                            <i class="nav-icon bi bi-gear"></i>
-                            <p>Settings</p>
-                        </a>
-                    </li>
-      
-                    <!-- User Management -->
-                    <li class="nav-item">
-                        <a href="/user/user-management" class="nav-link">
-                            <i class="nav-icon bi bi-person-badge"></i>
-                            <p>User Management</p>
-                        </a>
-                    </li>
+         <!-- Sidebar Menu -->
+  <div class="sidebar-wrapper">
+    <nav class="mt-2">
+        <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+            <!-- Dashboard -->
+            <li class="nav-item">
+                <a href="/dashboard" class="nav-link active">
+                    <i class="nav-icon bi bi-speedometer"></i>
+                    <p>Dashboard</p>
+                </a>
+            </li>
+
+            <!-- Clients -->
+            <li class="nav-item">
+                <a href="/client/getall" class="nav-link">
+                    <i class="nav-icon bi bi-people"></i>
+                    <p>Clients</p>
+                </a>
+            </li>
+
+            <!-- Grouped: Businesses, Properties, Signages -->
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="nav-icon bi bi-collection"></i>
+                    <p>
+                        Client Assets
+                        <i class="nav-arrow bi bi-chevron-right"></i>
+                    </p>
+                </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item"><a href="/business/showBusinesses" class="nav-link">Businesses</a></li>
+                    <li class="nav-item"><a href="/property/showProperties" class="nav-link">Properties</a></li>
+                    <li class="nav-item"><a href="/signages" class="nav-link">Signages</a></li>
                 </ul>
-            </nav>
-        </div>
-      </aside>      
+            </li>
+
+            <!-- Billing -->
+            <li class="nav-item">
+                <a href="/billing" class="nav-link">
+                    <i class="nav-icon bi bi-receipt"></i>
+                    <p>Billing</p>
+                </a>
+            </li>
+
+            <!-- Payment -->
+            <li class="nav-item">
+                <a href="/payment/showPaymentPage" class="nav-link">
+                    <i class="nav-icon bi bi-credit-card"></i>
+                    <p>Payment</p>
+                </a>
+            </li>
+
+            <!-- Approve Payment -->
+            <li class="nav-item">
+              <a href="/payment/showPaymentApprovalPage" class="nav-link">
+                  <i class="nav-icon bi bi-clipboard-check"></i>
+                  <p>Approve Payment</p>
+              </a>
+          </li>
+
+          <!-- Revenue Collectors -->
+          <li class="nav-item">
+              <a href="#" class="nav-link">
+                  <i class="nav-icon bi bi-people-fill"></i>
+                <p> Revenue Collector
+                  <i class="nav-arrow bi bi-chevron-right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item"><a href="/collector/" class="nav-link">Add Collector</a></li>
+                <li class="nav-item"><a href="/collector/collectorBills" class="nav-link">Manage Collector Bills</a></li>
+                <li class="nav-item"><a href="/collector/billAssignment" class="nav-link">Assign Bills</a></li>
+            </ul>
+          </li>
+
+            <!-- Reports -->
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="nav-icon bi bi-graph-up"></i>
+                  <p> Reports
+                    <i class="nav-arrow bi bi-chevron-right"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="/report/businessBillReport" class="nav-link">Business Bill</a></li>
+                  <li class="nav-item"><a href="/report/propertyBillReport" class="nav-link">Property Bill</a></li>
+              </ul>
+            </li>
+            
+
+            <!-- Settings -->
+            <li class="nav-item">
+                <a href="/settings" class="nav-link">
+                    <i class="nav-icon bi bi-gear"></i>
+                    <p>Settings</p>
+                </a>
+            </li>
+
+            <!-- User Management -->
+            <li class="nav-item">
+                <a href="/user/user-management" class="nav-link">
+                    <i class="nav-icon bi bi-person-badge"></i>
+                    <p>User Management</p>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+</aside>
+
       
 
 

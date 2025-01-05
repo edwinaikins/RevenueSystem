@@ -1,0 +1,228 @@
+<% pageTitle = 'Registered Collectors' %>
+
+    <div class="container mt-5">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <input type="text" id="searchBar" class="form-control mb-4 w-75" placeholder="Search collectors...">
+                <button class="btn btn-success" onclick="openAddModal()">Add Collector</button>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Collector ID</th>
+                            <th>Full Name</th>
+                            <th>Contact</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <nav aria-label="Page navigation">
+            <ul class="pagination" id="paginationContainer"></ul>
+        </nav>
+    </div>
+
+    <!-- Add Collector Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="addForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add New Collector</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact">Contact</label>
+                            <input type="text" class="form-control" id="contact" name="contact" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Collector</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Collector Modal -->
+    <div class="modal fade" id="updateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="updateForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Collector</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="updateName">Full Name</label>
+                            <input type="text" class="form-control" id="updateName" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateContact">Contact</label>
+                            <input type="text" class="form-control" id="updateContact" name="contact" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tableBody = document.getElementById('tableBody');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const searchBar = document.getElementById('searchBar');
+
+        async function fetchCollectors(page = 1, query = "") {
+            try {
+                const response = await fetch(`/collector/getcollectors?page=${page}&q=${encodeURIComponent(query)}`);
+                if (!response.ok) throw new Error("Failed to fetch collectors");
+
+                const { collectors, currentPage, totalPages } = await response.json();
+                renderTable(collectors, currentPage, totalPages, query);
+            } catch (error) {
+                console.error("Error fetching collectors:", error);
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">An error occurred</td></tr>`;
+            }
+        }
+
+        function renderTable(collectors, currentPage, totalPages, query) {
+            tableBody.innerHTML = "";
+            if (collectors.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center">No collectors found</td></tr>`;
+            } else {
+                collectors.forEach((collector, index) => {
+                    const row = `
+                        <tr>
+                            <td>${index + 1 + (currentPage - 1) * 10}</td>
+                            <td>${collector.collector_id}</td>
+                            <td>${collector.name}</td>
+                            <td>${collector.contact}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="openUpdateModal(${collector.collector_id}, '${collector.name}', '${collector.contact}')">Update</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteCollector(${collector.collector_id})">Delete</button>
+                            </td>
+                        </tr>`;
+                    tableBody.insertAdjacentHTML('beforeend', row);
+                });
+            }
+
+            renderPagination(currentPage, totalPages, query);
+        }
+
+        function renderPagination(currentPage, totalPages, query = "") {
+            paginationContainer.innerHTML = "";
+            if (currentPage > 1) {
+                paginationContainer.insertAdjacentHTML('beforeend', `<li class="page-item"><a class="page-link" href="#" onclick="fetchCollectors(${currentPage - 1}, '${query}')">Previous</a></li>`);
+            }
+            for (let i = 1; i <= totalPages; i++) {
+                paginationContainer.insertAdjacentHTML('beforeend', `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" onclick="fetchCollectors(${i}, '${query}')">${i}</a></li>`);
+            }
+            if (currentPage < totalPages) {
+                paginationContainer.insertAdjacentHTML('beforeend', `<li class="page-item"><a class="page-link" href="#" onclick="fetchCollectors(${currentPage + 1}, '${query}')">Next</a></li>`);
+            }
+        }
+
+        async function deleteCollector(id) {
+            try {
+                const response = await fetch(`/collector/delete/${id}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error("Failed to delete collector");
+
+                fetchCollectors();
+            } catch (error) {
+                console.error("Error deleting collector:", error);
+            }
+        }
+
+        document.getElementById('addForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const contact = document.getElementById('contact').value;
+
+            try {
+                const response = await fetch('/collector/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, contact })
+                });
+                if (!response.ok) throw new Error("Failed to add collector");
+
+                closeModal();
+                fetchCollectors();
+            } catch (error) {
+                console.error("Error adding collector:", error);
+            }
+        });
+
+        document.getElementById('updateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('updateName').value;
+            const contact = document.getElementById('updateContact').value;
+            const action = document.getElementById('updateForm').action;
+
+            try {
+                const response = await fetch(action, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, contact })
+                });
+                if (!response.ok) throw new Error("Failed to update collector");
+
+                closeModal();
+                fetchCollectors();
+            } catch (error) {
+                console.error("Error updating collector:", error);
+            }
+        });
+
+        function openAddModal() {
+    document.getElementById('name').value = '';
+    document.getElementById('contact').value = '';
+    const addModal = new bootstrap.Modal(document.getElementById('addModal'));
+    addModal.show();
+}
+
+function openUpdateModal(id, name, contact) {
+    document.getElementById('updateForm').action = `/collector/update/${id}`;
+    document.getElementById('updateName').value = name;
+    document.getElementById('updateContact').value = contact;
+    const updateModal = new bootstrap.Modal(document.getElementById('updateModal'));
+    updateModal.show();
+}
+
+function closeModal() {
+    const addModalEl = document.getElementById('addModal');
+    const updateModalEl = document.getElementById('updateModal');
+
+    const addModal = bootstrap.Modal.getInstance(addModalEl);
+    const updateModal = bootstrap.Modal.getInstance(updateModalEl);
+
+    if (addModal) addModal.hide();
+    if (updateModal) updateModal.hide();
+}
+
+        searchBar.addEventListener('input', (e) => {
+            const query = e.target.value;
+            fetchCollectors(1, query);
+        });
+
+        fetchCollectors();
+    </script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

@@ -624,3 +624,46 @@ exports.populateArrears = async (req, res) => {
         console.error("Error populating arrears:", error);
     }
 };
+
+
+exports.getBillByStatus = async (req, res) => {
+    const { status } = req.query
+    let status1 = '';
+    let status2 = '';
+    if(status === ''){
+        status1 = 'Draft';
+        status2 = 'Issued';
+    }else{
+        status1 = status;
+    }
+
+    try{
+    const [results] = await db.query(`
+        SELECT 
+            b.bill_id AS Bill_ID,
+            CASE 
+                WHEN b.entity_type = 'Business' THEN bu.business_name
+                WHEN b.entity_type = 'Property' THEN p.house_number
+                ELSE 'Unknown'
+            END AS Entity_Name,
+            b.entity_type AS Entity_Type,
+            l.location AS Location,
+            (b.total_amount + IFNULL(b.arrears, 0)) AS Bill_Amount,
+            rc.name AS Collector_Assigned
+        FROM bills b
+        LEFT JOIN businesses bu ON b.business_id = bu.business_id
+        LEFT JOIN Properties p ON b.property_id = p.property_id
+        LEFT JOIN locations l ON bu.location_id = l.location_id OR p.location_id = l.location_id
+        LEFT JOIN collector_bill_assignment cba ON b.bill_id = cba.bill_id
+        LEFT JOIN revenue_collector rc ON cba.collector_id = rc.collector_id
+        WHERE b.bill_status IN (?,?);
+
+        `, [status1,status2]
+    )
+    res.json({ bills: results});
+    }
+    catch(error){
+        console.error('Error fetching bills:', error);
+        res.status(500).send('Error fetching bills');
+    }
+}

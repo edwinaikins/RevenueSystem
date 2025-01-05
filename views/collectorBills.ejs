@@ -1,0 +1,209 @@
+<div class="container mt-5">
+    <% pageTitle = 'Collector Bills Management' %>
+
+    <!-- Search Collector -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Search Collector</h3>
+      </div>
+      <div class="card-body">
+        <div class="form-inline">
+          <input
+            type="text"
+            id="collectorId"
+            class="form-control mr-2"
+            placeholder="Enter Collector ID or Name"
+          />
+          <button
+            id="searchCollector"
+            class="btn btn-primary"
+            onclick="fetchCollectorDetails()"
+          >
+            Search
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="d-none text-center mt-3">
+      <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+      <p>Loading...</p>
+    </div>
+
+    <!-- Collector Details -->
+    <div id="collectorDetails" class="card d-none mt-3">
+      <div class="card-header">
+        <h3 class="card-title">Collector Details</h3>
+      </div>
+      <div class="card-body">
+        <p><strong>ID:</strong> <span id="collectorIdDisplay"></span></p>
+        <p><strong>Name:</strong> <span id="collectorName"></span></p>
+        <p><strong>Contact:</strong> <span id="collectorContact"></span></p>
+      </div>
+    </div>
+
+    <!-- Bills Table -->
+    <div id="billsSection" class="card d-none mt-3">
+      <div class="card-header">
+        <h3 class="card-title">Assigned Bills</h3>
+      </div>
+      <div class="card-body">
+        <div class="form-inline mb-3">
+          <input
+            type="text"
+            id="billSearch"
+            class="form-control mr-2"
+            placeholder="Search Bills (Name, Type, Location)"
+          />
+          <button id="searchBills" class="btn btn-primary" onclick="fetchCollectorDetails()">Search</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Bill ID</th>
+                <th>Entity Name</th>
+                <th>Entity Type</th>
+                <th>Bill Amount</th>
+                <th>Location</th>
+                <th>Distribution Status</th>
+              </tr>
+            </thead>
+            <tbody id="billsTable"></tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <span id="paginationInfo" class="text-muted">Page 1 of 1</span>
+          <nav id="pagination" class="d-none">
+            <ul class="pagination justify-content-center mb-0">
+              <li class="page-item" id="prevPage">
+                <a class="page-link" href="#" onclick="changePage(-1)">Previous</a>
+              </li>
+              <li class="page-item" id="nextPage">
+                <a class="page-link" href="#" onclick="changePage(1)">Next</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPage = 1;
+    const limit = 10;
+
+    const fetchCollectorDetails = async () => {
+      const collectorId = document.getElementById("collectorId").value;
+      const searchTerm = document.getElementById("billSearch").value;
+
+      document.getElementById("loadingIndicator").classList.remove("d-none");
+
+      try {
+        const response = await fetch(
+          `/collector/getCollectorBills/${collectorId}?page=${currentPage}&limit=${limit}&searchTerm=${searchTerm}`
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch collector details");
+
+        const data = await response.json();
+        const { collector, bills, pagination } = data;
+
+        // Display collector details
+        document.getElementById("collectorDetails").classList.remove("d-none");
+        document.getElementById("collectorIdDisplay").innerText = collector.collector_id;
+        document.getElementById("collectorName").innerText = collector.name;
+        document.getElementById("collectorContact").innerText = collector.contact;
+
+        // Display bills
+        const billsTable = document.getElementById("billsTable");
+        billsTable.innerHTML = "";
+
+        if (bills.length === 0) {
+          billsTable.innerHTML = '<tr><td colspan="6" class="text-center">No bills found</td></tr>';
+        } else {
+          bills.forEach((bill) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${bill.Bill_ID}</td>
+              <td>${bill.Entity_Name}</td>
+              <td>${bill.Entity_Type}</td>
+              <td>${bill.Bill_Amount}</td>
+              <td>${bill.Location}</td>
+              <td>
+                <select 
+                  class="form-control" 
+                  data-bill-id="${bill.Bill_ID}" 
+                  data-original-value="${bill.distribution_status}" 
+                  onchange="updateBillStatus(this)"
+                >
+                  <option value="Bill Collected" ${bill.distribution_status === "Bill Collected" ? "selected" : ""}>Bill Collected</option>
+                  <option value="Bill Served" ${bill.distribution_status === "Bill Served" ? "selected" : ""}>Bill Served</option>
+                  <option value="Bill Invalid" ${bill.distribution_status === "Bill Invalid" ? "selected" : ""}>Bill Invalid</option>
+                </select>
+              </td>
+            `;
+            billsTable.appendChild(row);
+          });
+        }
+
+        // Update pagination
+        const paginationElement = document.getElementById("pagination");
+        document.getElementById("paginationInfo").innerText = `Page ${pagination.currentPage} of ${pagination.totalPages}`;
+        paginationElement.dataset.totalPages = pagination.totalPages;
+
+        if (pagination.totalPages > 1) {
+          paginationElement.classList.remove("d-none");
+          document.getElementById("prevPage").classList.toggle("disabled", currentPage === 1);
+          document.getElementById("nextPage").classList.toggle("disabled", currentPage === pagination.totalPages);
+        } else {
+          paginationElement.classList.add("d-none");
+        }
+
+        document.getElementById("billsSection").classList.remove("d-none");
+      } catch (error) {
+        console.error("Error fetching collector details:", error);
+        alert("Error fetching collector details. Please try again.");
+        document.getElementById("collectorDetails").classList.add("d-none");
+        document.getElementById("billsSection").classList.add("d-none");
+      } finally {
+        document.getElementById("loadingIndicator").classList.add("d-none");
+      }
+    };
+
+    const changePage = (delta) => {
+      const totalPages = document.getElementById("pagination").dataset.totalPages;
+
+      if ((currentPage + delta) > totalPages || (currentPage + delta) < 1) return;
+
+      currentPage += delta;
+      fetchCollectorDetails();
+    };
+
+    const updateBillStatus = async (dropdown) => {
+      const billId = dropdown.getAttribute("data-bill-id");
+      const newStatus = dropdown.value;
+
+      try {
+        const response = await fetch(`/collector/updateDistributionStatus`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bill_id: billId, distribution_status: newStatus }),
+        });
+
+        if (!response.ok) throw new Error("Failed to update bill status");
+
+        alert(`Bill ID ${billId} updated to ${newStatus}`);
+      } catch (error) {
+        console.error("Error updating bill status:", error);
+        alert("Error updating bill status. Please try again.");
+        dropdown.value = dropdown.getAttribute("data-original-value");
+      }
+    };
+  </script>
