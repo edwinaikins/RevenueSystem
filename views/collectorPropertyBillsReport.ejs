@@ -1,0 +1,332 @@
+
+<% pageTitle = 'Report' %>
+  <div class="content-wrapper">
+    <!-- Main Content -->
+    <section class="content">
+      <div class="container-fluid">
+        <!-- Search Form -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Search Bill</h3>
+          </div>
+          <div class="card-body">
+            <form id="searchForm">
+              <div class="row">
+                <div class="col-md-4">
+                  <label for="collectorId">Collector ID</label>
+                  <input type="text" id="collectorId" class="form-control" placeholder="Enter Collector ID">
+                </div>
+                <div class="col-md-4">
+                  <label for="year">Year</label>
+                  <input type="text" id="year" class="form-control" placeholder="Enter Year">
+                </div>
+                <div class="col-md-4 text-right">
+                  <button type="button" class="btn btn-primary mt-4" onclick="searchBill()">Search</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Multiple Bills Container -->
+        <div id="multiPrintContainer" style="margin-top: 20px;"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const currentDate = new Date();
+const formattedDate = currentDate.toLocaleDateString('en-US', { 
+  weekday: 'long', 
+  year: 'numeric', 
+  month: 'long', 
+  day: 'numeric' 
+});
+document.addEventListener("DOMContentLoaded", () => {
+  const dateElement = document.getElementById('dateOfIssue');
+  if (dateElement) {
+    dateElement.textContent = formattedDate;
+  }
+});
+
+async function searchBill() {
+  const collectorId = document.getElementById("collectorId").value.trim();
+  const year = document.getElementById("year").value.trim();
+
+  if (!collectorId || !year) {
+    alert("Please provide both Collector ID and Year.");
+    return;
+  }
+
+  try {
+    // Fetch data from the API
+    const response = await fetch(`/billing/getCollectorPropertyBills?clientId=${collectorId}&year=${year}`);
+    const data = await response.json();
+
+    if (!data.success || !data.bill.length) {
+      alert("No bills found for the provided Collector ID and Year.");
+      document.getElementById("multiPrintContainer").innerHTML = "";
+      return;
+    }
+
+    const { bill, billItems, fees, arrears } = data;
+
+    const container = document.getElementById("multiPrintContainer");
+    container.innerHTML = "";
+
+    // Loop through each bill to create a template
+    bill.forEach((billData, index) => {
+      const items = billItems.filter((item) => item.bill_id === billData.bill_id);
+      const feeItems = fees.filter((fee) => fee.bill_id === billData.bill_id);
+      const arrearitems = arrears.filter((arrear) => arrear.entity_id === billData.property_id);
+
+      const billTemplate = `
+        <div id="billTemplate-${index}" class="bill-container" style="margin-top: 20px;">
+          <div class="card">
+            <div class="card-body">
+              <!-- Header Table -->
+              <table class="header-table" style="width: 100%; margin-bottom: 20px;">
+                <tr>
+                  <td style="width: 20%; text-align: left;">
+                    <img src="/images/nama.jpeg" alt="Left Logo" style="width: 80px;">
+                  </td>
+                  <td style="width: 60%; text-align: center;">
+                    <h2 style="font-size: 1.5rem;">NSAWAM ADOAGYIRI MUNICIPAL ASSEMBLY</h2>
+                    <h3 style="font-size: 1.2rem;">GENERAL DEMAND NOTICE</h3>
+                    <p style="font-size: 0.9rem;">Website: <a href="http://www.nama.gov.gh">www.nama.gov.gh</a> | Contact: 0593039517 / 0507368543</p>
+                  </td>
+                  <td style="width: 20%; text-align: right;">
+                    <img src="/images/ghana.jpeg" alt="Right Logo" style="width: 80px;">
+                  </td>
+                </tr>
+              </table>
+
+              <hr style="border: 1px solid #000; margin-bottom: 20px;">
+
+              <!-- Details Table -->
+              <table class="details-table" style="width: 100%; margin-bottom: 20px;">
+                <tr>
+                  <th>Client Name</th>
+                  <td>${billData.firstname} ${billData.lastname}</td>
+                  <th>Contact</th>
+                  <td>${billData.contact}</td>
+                  <th>Client ID</th>
+                  <td>${billData.client_id}</td>
+                </tr>
+                <tr>
+                  <th>House Number</th>
+                  <td>${billData.house_number}</td>
+                  <th>Property ID</th>
+                  <td>${billData.property_id}</td>
+                  <th>Location</th>
+                  <td>${billData.location}</td>
+                </tr>
+                <tr>
+                  <th>Year of Assessment</th>
+                  <td>${billData.year}</td>
+                </tr>
+              </table>
+
+              <!-- Additional Information -->
+              <div class="additional-info" style="margin-bottom: 20px;">
+                <p>
+                  Under Section 1 & 2 of the Nsawam Adoagyiri Municipal bye-laws, a Property Rate of 
+                  <strong>${billData.total_amount} Ghana Cedis</strong> has been made in respect of the year ending <strong>${billData.year}</strong>, Payable on Demand.
+                </p>
+              </div>
+
+              <!-- Billing Table -->
+
+<div class="table-responsive">
+  <table class="billing-table table table-bordered">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Arrears (GHC)</th>
+        <th>Current Bill (GHC)</th>
+        <th>Total Due (GHC)</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${items.map(item => `
+        <tr>
+          <td>${item.description}</td>
+          <td>
+            <table style="width: 100%; border: none;">
+              <thead>
+                <tr style="border: none;">
+                  <th style="border: none;">Year</th>
+                  <th style="border: none;">Amount (GHC)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${arrears.filter(arrear => arrear.entity_id === billData.property_id).length ? arrears
+                  .filter(arrear => arrear.entity_id === billData.property_id)
+                  .map(arrear => `
+                    <tr style="border: none;">
+                      <td style="border: none;">${arrear.arrear_year}</td>
+                      <td style="border: none;">${arrear.arrear_amount}</td>
+                    </tr>
+                  `).join("") : `
+                  <tr style="border: none;">
+                    <td style="border: none;" colspan="2">No arrears</td>
+                  </tr>
+                `}
+              </tbody>
+            </table>
+          </td>
+          <td>${item.amount}</td>
+          <td>
+            ${(parseFloat(item.amount) + parseFloat(billData.arrears)).toFixed(2)}
+          </td>
+        </tr>`).join("")}
+      ${feeItems.map(fee => `
+        <tr>
+          <td>${fee.description}</td>
+          <td>-</td>
+          <td>${fee.amount}</td>
+          <td>${fee.amount}</td>
+        </tr>`).join("")}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td><strong>Total</strong></td>
+        <td></td>
+        <td></td>
+        <td><strong>${(parseFloat(billData.total_amount) + parseFloat(billData.arrears)).toFixed(2)}</strong></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+              <!-- Payment Instructions -->
+              <div class="payment-instructions" style="margin-top: 20px;">
+                <h4>PAYMENT TO BE MADE:</h4>
+                <ol>
+                  <li>At the Nsawam Adoagyiri Municipal offices. Office Hours: From Monday to Friday 8:00 a.m. to 12:30 and 1:30 p.m. to 5:00 p.m.</li>
+                  <li>By post to the Municipal Finance Officer, Nsawam Adoagyiri Municipal Assembly, P.O. Box NW 4, Nsawam.</li>
+                  <li>Cheques, Postal, and Money Orders should be made payable to Nsawam Adoagyiri Municipal Assembly. Cheques drawn for payment should be marked "Commission to drawers account".</li>
+                  <li>It shall be the duty of every person liable to pay these rates to do so at the office of the Nsawam Adoagyiri Municipal Assembly or to any accredited person on or before <strong>Tuesday, April 23, 2024 "BY ORDER OF THE NSAWAM ADOAGYIRI MUNICIPAL ASSEMBLY"</strong>.</li>
+                </ol>
+              </div>
+
+              <!-- Signature Section -->
+              <div class="signature" style="margin-top: 40px; text-align: right;">
+                <img src="/images/signature.png" alt="Signature" style="width: 150px; height: auto; display: inline-block;">
+                <p style="margin-top: 10px;">
+                  Municipal Finance Officer<br>
+                  Nsawam Adoagyiri Municipal Assembly
+                </p>
+              </div>
+
+              <!-- Print Button -->
+              <div class="text-center" style="margin-top: 20px;">
+                <button class="btn btn-success" onclick="printSingleBill(${index})">Print This Bill</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      container.innerHTML += billTemplate;
+    });
+  } catch (error) {
+    console.error("Error fetching bills:", error);
+    alert("Failed to fetch bills. Please try again.");
+  }
+}
+
+
+  function printSingleBill(index) {
+  const bill = document.getElementById(`billTemplate-${index}`);
+  const printWindow = window.open("", `_blank${index}`);
+
+  // Include styles explicitly in the print content
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Print Bill</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+          }
+          .bill-container {
+            margin: 0 auto;
+            width: 100%;
+          }
+          .header-table {
+            width: 100%;
+            margin-bottom: 20px;
+          }
+          .header-table td {
+            vertical-align: middle;
+          }
+          .header-table img {
+            width: 80px;
+            object-fit: contain;
+          }
+          .header-table h2 {
+            font-size: 1.5rem;
+            margin: 0;
+          }
+          .header-table h3 {
+            font-size: 1.2rem;
+            margin: 5px 0;
+          }
+          .header-table p {
+            font-size: 0.9rem;
+            margin: 0;
+          }
+          .details-table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+          }
+          .details-table th, .details-table td {
+            padding: 8px;
+            text-align: left;
+          }
+          .details-table th {
+            font-weight: bold;
+          }
+          .billing-table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          .billing-table th, .billing-table td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+          }
+          .billing-table th {
+            background-color: #f8f9fa;
+          }
+          .additional-info, .payment-instructions, .signature {
+            margin-top: 20px;
+          }
+          .buttons {
+            display: none; /* Hide buttons in print */
+          }
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+              .btn {
+              display: none; /* Hides all buttons during print */
+            }
+          }
+        </style>
+      </head>
+      <body>${bill.innerHTML}</body>
+    </html>
+  `);
+
+  // Close the document and trigger the print
+  printWindow.document.close();
+  setTimeout(() => printWindow.print(), 500);
+}
+
+
+</script>

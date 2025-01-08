@@ -7,7 +7,10 @@ router.get("/", billingController.showBillingPage);
 router.get("/getClientBillData", billingController.getClientBillData);
 router.get("/saveBill", billingController.saveBill);
 router.get("/getBusinessBill", billingController.getBusinessBill);
+router.get("/getPropertyBill", billingController.getPropertyBill);
 router.put("/updateArrears", billingController.populateArrears);
 router.get("/getBillByStatus", billingController.getBillByStatus);
+router.get("/getCollectorBusinessBills", billingController.getCollectorBusinessBills);
+router.get("/getCollectorPropertyBills", billingController.getCollectorPropertyBills);
 
 module.exports = router;

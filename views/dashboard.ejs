@@ -179,6 +179,8 @@
                    <ul class="nav nav-treeview">
                      <li class="nav-item"><a href="/report/businessBillReport" class="nav-link">Business Bill</a></li>
                      <li class="nav-item"><a href="/report/propertyBillReport" class="nav-link">Property Bill</a></li>
+                     <li class="nav-item"><a href="/report/CollectorBusinessBillReport" class="nav-link">Collector Business Bills</a></li>
+                    <li class="nav-item"><a href="/report/CollectorPropertyBillReport" class="nav-link">Collector Property Bills</a></li>
                  </ul>
                </li>
                
@@ -290,6 +292,10 @@
                       <canvas id="billChart"></canvas>
                     </div>
                     <div class="col-lg-6">
+                      <h5>Bill Value</h5>
+                      <canvas id="billValueChart"></canvas>
+                    </div>
+                    <div class="col-lg-6">
                       <h5>Revenue Sources</h5>
                       <canvas id="revenueChart"></canvas>
                     </div>
@@ -380,15 +386,14 @@
             new Chart(billChartCtx, {
               type: 'bar',
               data: {
-                labels: ['Bills Printed', 'Bills Served', 'Bills Served Value'],
+                labels: ['Bills Printed', 'Bills Served',],
                 datasets: [
                   {
                     label: 'Bill Distribution',
-                    data: [data.Printed, data.Served, data.ServedValue],
+                    data: [data.Printed, data.Served],
                     backgroundColor: [
                       'rgba(54, 162, 235, 0.5)', 
                       'rgba(255, 99, 132, 0.5)', 
-                      'rgba(255, 206, 86, 0.5)',
                     ],
                   },
                 ],
@@ -399,7 +404,42 @@
                     beginAtZero: true,
                     title: {
                       display: true,
-                      text: 'Count / Value (GH₵)',
+                      text: 'Count',
+                    },
+                  },
+                },
+              },
+            });
+          })
+          .catch(error => console.error('Error fetching Bill Distribution data:', error));
+
+          // Fetch Bill Distribution Value
+          fetch(`/dashboard/getBillDistribution?year=${year}`)
+          .then(response => response.json())
+          .then(data => {
+            const billChartCtx = document.getElementById('billValueChart').getContext('2d');
+            new Chart(billChartCtx, {
+              type: 'bar',
+              data: {
+                labels: ['Bills Printed Value','Bills Served Value'],
+                datasets: [
+                  {
+                    label: 'Bill Distribution',
+                    data: [data.PrintedValue, data.ServedValue],
+                    backgroundColor: [
+                      'rgba(54, 162, 235, 0.5)', 
+                      'rgba(255, 99, 132, 0.5)', 
+                    ],
+                  },
+                ],
+              },
+              options: {
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: 'Value (GH₵)',
                     },
                   },
                 },

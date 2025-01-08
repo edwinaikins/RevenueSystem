@@ -75,15 +75,24 @@ exports.getKPIS = async (req, res) => {
           AND b.year = ?
       `;
 
+      const printedValueQuery = `
+        SELECT SUM(bills.total_amount + IFNULL(bills.arrears, 0)) AS total_bill_value
+        FROM bills
+        WHERE bills.year = ?
+      `;
+
         const [printedResult] = await db.query(printedQuery, [year]);
         const [servedResult] = await db.query(servedQuery, [year]);
         const [servedValueResult] = await db.query(servedValueQuery, [year]);
+        const [printedValueResult] = await db.query(printedValueQuery, [year]);
+
 
         // Response Data
         const response = {
         Printed: printedResult[0].count || 0,
         Served: servedResult[0].count || 0,
         ServedValue: parseFloat(servedValueResult[0].total_served_value || 0),
+        PrintedValue: parseFloat(printedValueResult[0].total_bill_value || 0)
         };
 
        res.json(response)

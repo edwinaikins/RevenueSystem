@@ -16,7 +16,7 @@ exports.showPageCollectorBills = (req, res) => {
 // Get collectors with pagination and search
 exports.getCollectors = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
-    const pageSize = 10;
+    const pageSize = 20;
     const offset = (page - 1) * pageSize;
     const query = req.query.q ? `%${req.query.q}%` : '%';
 
@@ -32,6 +32,19 @@ exports.getCollectors = async (req, res) => {
 
         const totalPages = Math.ceil(count / pageSize);
         res.json({ collectors, currentPage: page, totalPages });
+    } catch (error) {
+        console.error('Error fetching collectors:', error);
+        res.status(500).send('Error fetching collectors');
+    }
+};
+// Get collectors
+exports.getCollector = async (req, res) => {
+
+    try {
+        const [collectors] = await db.query(
+            'SELECT * FROM revenue_collector',
+        );
+        res.json({ collectors });
     } catch (error) {
         console.error('Error fetching collectors:', error);
         res.status(500).send('Error fetching collectors');

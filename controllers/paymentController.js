@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const { sendSMS } = require("./smsServices")
 
 
 exports.createPayment = async (req, res) => {
@@ -150,104 +151,6 @@ exports.getClientPaymentData = async (req, res) => {
   }
 
 
-//   exports.paymentApproved = async (req, res) => {
-//     const { id: paymentId } = req.params;
-
-//     let connection; // Ensure connection is declared in the correct scope
-
-//     try {
-//         connection = await db.getConnection(); // Initialize connection
-//         await connection.beginTransaction();
-
-//         // Step 1: Get payment details
-//         const [payments] = await connection.query(
-//             `SELECT * FROM payments WHERE payment_id = ? AND payment_status = "Pending"`,
-//             [paymentId]
-//         );
-
-//         if (payments.length === 0) {
-//             return res.status(404).json({ msg: "Payment not found or already processed." });
-//         }
-
-//         const payment = payments[0];
-//         const { client_id, bill_id, entity_type, amount, details } = payment;
-
-//         // Step 2: Approve payment
-//         await connection.query(
-//             `UPDATE payments SET payment_status = "Approved" WHERE payment_id = ?`,
-//             [paymentId]
-//         );
-
-//         // Step 3: Insert into client_accounts
-//         await connection.query(
-//             `INSERT INTO client_accounts (client_id, entity_type, bill_id, transaction_date, details, credit, debit)
-//              VALUES (?, ?, ?, NOW(), ?, ?, 0.00)`,
-//             [client_id, entity_type, bill_id, details || "Payment processed", amount]
-//         );
-
-//         // Step 4: Handle arrears reduction and bill adjustment
-//         let remainingAmount = parseFloat(amount);
-
-//         const [arrears] = await connection.query(`
-//             SELECT arrear_id, arrear_amount
-//             FROM arrears
-//             WHERE entity_type = ? AND entity_id = (SELECT business_id FROM bills WHERE bill_id = ?)
-//               AND cleared_status = 'Uncleared'
-//             ORDER BY arrear_year ASC
-//         `, [entity_type, bill_id]);
-
-//         for (const arrear of arrears) {
-//             if (remainingAmount <= 0) break;
-
-//             const { arrear_id, arrear_amount } = arrear;
-
-//             if (arrear_amount <= remainingAmount) {
-//                 // Fully clear arrear
-//                 await connection.query(
-//                     `UPDATE arrears SET arrear_amount = 0, cleared_status = "Cleared", cleared_date = NOW() WHERE arrear_id = ?`,
-//                     [arrear_id]
-//                 );
-//                 remainingAmount -= arrear_amount;
-//             } else {
-//                 // Partially clear arrear
-//                 await connection.query(
-//                     `UPDATE arrears SET arrear_amount = arrear_amount - ? WHERE arrear_id = ?`,
-//                     [remainingAmount, arrear_id]
-//                 );
-//                 remainingAmount = 0;
-//             }
-//         }
-
-//         if (remainingAmount > 0) {
-//             // Adjust the bill
-//             const [bill] = await connection.query(
-//                 `SELECT total_amount FROM bills WHERE bill_id = ?`,
-//                 [bill_id]
-//             );
-
-//             if (bill.length === 0) throw new Error(`Bill ID ${bill_id} not found.`);
-
-//             const totalAmount = parseFloat(bill[0].total_amount);
-//             const newTotal = Math.max(totalAmount - remainingAmount, 0);
-//             const newStatus = newTotal === 0 ? "Paid" : "Partial Payment";
-
-//             await connection.query(
-//                 `UPDATE bills SET bill_status = ? WHERE bill_id = ?`,
-//                 [newStatus, bill_id]
-//             );
-//         }
-
-//         await connection.commit();
-//         res.status(200).json({ msg: "Payment successfully approved and processed." });
-//     } catch (error) {
-//         if (connection) await connection.rollback();
-//         console.error("Error approving payment:", error);
-//         res.status(500).json({ msg: "Internal server error." });
-//     } finally {
-//         if (connection) connection.release(); // Ensure connection is released in finally
-//     }
-// };
-
 
 exports.paymentApproved = async (req, res) => {
   const { id: paymentId } = req.params;
@@ -364,7 +267,37 @@ exports.paymentApproved = async (req, res) => {
 
 
       await connection.commit();
+    //SMS for Payment
+      const [clientDetails] = await db.query(`SELECT clients.contact, clients.firstname FROM clients WHERE clients.client_id = ?`, [client_id])
+      console.log(clientDetails)
+      const [billDetails] = await db.query(`SELECT 
+      bills.total_amount + IFNULL(bills.arrears, 0) AS billAmount,
+      CASE WHEN bills.entity_type = 'Business' THEN businesses.business_name
+		WHEN bills.entity_type = 'Property' THEN Properties.house_number
+		ELSE 'Unknown'
+		END AS Entity_Name,
+        bills.due_date
+        FROM
+            bills
+        LEFT JOIN businesses ON bills.business_id = businesses.business_id
+        LEFT JOIN Properties ON bills.property_id = Properties.property_id
+        WHERE
+            bills.bill_id = ?`, [bill_id])
+        let message = ''
+      if(entity_type === "Business"){
+      message = `We acknowledge receipt of your Business Operating Permit payment of GHS${amount} for ${billDetails[0].Entity_Name}. The outstanding balance is GHS${parseFloat(billDetails[0].billAmount) - parseFloat(amount)}.`;
+      }else if(entity_type === "Property"){
+      message = `We acknowledge receipt of your Property Rate payment of GHS${amount} for ${billDetails[0].Entity_Name}. The outstanding balance is GHS${parseFloat(billDetails[0].billAmount) - parseFloat(amount)}.`;
+      }
+      const msgid = `BILL-${bill_id}`;
+      const recipient = `0${clientDetails[0].contact}`
+      console.log({recipient,message,msgid})
+      if(await sendSMS(recipient, message, msgid)){
+      
       res.status(200).json({ msg: "Payment successfully approved and processed." });
+      }else{
+        res.status(200).json({ msg: "Payment successfully approved and processed But Failed to send SMS" });
+      }
   } catch (error) {
       if (connection) await connection.rollback(); // Rollback in case of an error
       console.error("Error approving payment:", error);

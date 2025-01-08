@@ -7,6 +7,7 @@ router.post("/register", collectorController.addCollector);
 router.put("/update/:id", collectorController.updateCollector);
 router.delete("/delete/:id", collectorController.deleteCollector);
 router.get("/getCollectors", collectorController.getCollectors);
+router.get("/getCollector", collectorController.getCollector);
 router.get("/billAssignment", collectorController.showPageBillAssignment);
 router.post("/billAssign", collectorController.billAssign);
 router.post("/billReassign", collectorController.reassignBill);

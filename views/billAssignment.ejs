@@ -84,7 +84,7 @@
 <script>
     async function fetchCollectors() {
         try {
-            const response = await fetch('/collector/getCollectors');
+            const response = await fetch('/collector/getCollector');
             if (!response.ok) throw new Error('Failed to fetch collectors');
             const data = await response.json();
             return data.collectors;

@@ -42,7 +42,6 @@ exports.getBusinessBill = async (req, res) => {
 
         // Extract business IDs
         const businessIds = bill.map(b => b.business_id)
-        console.log(businessIds)
 
 
         // Fetch bill items and fees for the specific bill IDs
@@ -81,32 +80,240 @@ exports.getBusinessBill = async (req, res) => {
 
 // Fetch bill for properties
 exports.getPropertyBill = async (req, res) => {
-    const { clientId, year } = req.params;
+    const { clientId, year } = req.query;
 
     try {
+        // Fetch main bill data
         const query = `
             SELECT 
-                b.id AS bill_id,
-                bi.description,
-                bi.amount,
-                p.name AS property_name
-            FROM 
-                Bills b
-            JOIN 
-                Bill_Items bi ON b.id = bi.bill_id
-            JOIN 
-                Properties p ON bi.entity_id = p.id
-            WHERE 
-                b.client_id = ? AND bi.entity_type = 'property' AND b.year = ?;
+                clientDetails.client_id, 
+                clientDetails.firstname, 
+                clientDetails.lastname, 
+                clientDetails.contact, 
+                propertyDetails.property_id,
+                propertyDetails.house_number,
+                locationDetails.location,
+                bills.entity_type,
+                bills.total_amount,
+                bills.arrears,
+                bills.year,
+                bills.due_date,
+                bills.bill_id
+            FROM clients clientDetails
+            LEFT JOIN Properties propertyDetails ON clientDetails.client_id = propertyDetails.client_id
+            LEFT JOIN locations locationDetails ON propertyDetails.location_id = locationDetails.location_id
+            LEFT JOIN bills ON clientDetails.client_id = bills.client_id AND propertyDetails.property_id = bills.property_id
+            WHERE clientDetails.client_id = ? 
+              AND bills.year = ? 
+              AND bills.entity_type = ?
         `;
+        const [bill] = await db.query(query, [clientId, year, "Property"]);
 
-        const [rows] = await db.query(query, [clientId, year]);
-        res.status(200).json({ success: true, data: rows });
+        if (bill.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: "No property bill found for the specified client and year.",
+            });
+        }
+        // Extract bill IDs
+        const billIds = bill.map(b => b.bill_id);
+
+        // Extract business IDs
+        const businessIds = bill.map(b => b.business_id)
+
+
+        // Fetch bill items and fees for the specific bill IDs
+        const [billItems] = await db.query(`
+            SELECT bill_items.description,
+                   bill_items.amount,
+                   bill_items.bill_id
+            FROM bill_items
+            WHERE bill_items.bill_id IN (?)
+        `, [billIds]);
+
+        const [fees] = await db.query(`
+            SELECT fees.description,
+                   fees.amount,
+                   fees.bill_id
+            FROM fees
+            WHERE fees.bill_id IN (?)
+        `, [billIds]);
+
+        const [arrears] = await db.query(`
+            SELECT arrears.arrear_year,
+                   arrears.arrear_amount,
+                   arrears.bill_id,
+                    arrears.entity_id
+            FROM arrears
+            WHERE arrears.entity_id IN (?) AND arrears.cleared_status = "Uncleared" AND arrears.arrear_year < ?
+        `, [businessIds, year]);
+
+        // Return combined data
+        res.status(200).json({ success: true, bill, billItems, fees, arrears });
     } catch (err) {
-        console.error(err);
+        console.error("Error fetching business bill:", err);
+        res.status(500).json({ success: false, error: "Failed to fetch business bill." });
+    }
+};
+
+exports.getCollectorBusinessBills = async (req, res) => {
+    const { clientId, year } = req.query;
+
+    try {
+        // Fetch main bill data
+        const query = `
+            SELECT 
+                clientDetails.client_id, 
+                clientDetails.firstname, 
+                clientDetails.lastname, 
+                clientDetails.contact, 
+                businessDetails.business_id,
+                businessDetails.business_name,
+                locationDetails.location,
+                bills1.entity_type,
+                bills1.total_amount,
+                bills1.arrears,
+                bills1.year,
+                bills1.due_date,
+                bills1.bill_id
+            FROM clients clientDetails
+            LEFT JOIN businesses businessDetails ON clientDetails.client_id = businessDetails.client_id
+            LEFT JOIN locations locationDetails ON businessDetails.location_id = locationDetails.location_id
+            LEFT JOIN bills bills1 ON clientDetails.client_id = bills1.client_id AND businessDetails.business_id = bills1.business_id
+            LEFT JOIN collector_bill_assignment ON collector_bill_assignment.bill_id = bills1.bill_id
+			WHERE collector_bill_assignment.collector_id = ?
+              AND bills1.year = ?
+              AND bills1.entity_type = ?
+        `;
+        const [bill] = await db.query(query, [clientId, year, "Business"]);
+
+        if (bill.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: "No business bill found for the specified client and year.",
+            });
+        }
+        // Extract bill IDs
+        const billIds = bill.map(b => b.bill_id);
+
+        // Extract business IDs
+        const businessIds = bill.map(b => b.business_id)
+
+
+        // Fetch bill items and fees for the specific bill IDs
+        const [billItems] = await db.query(`
+            SELECT bill_items.description,
+                   bill_items.amount,
+                   bill_items.bill_id
+            FROM bill_items
+            WHERE bill_items.bill_id IN (?)
+        `, [billIds]);
+
+        const [fees] = await db.query(`
+            SELECT fees.description,
+                   fees.amount,
+                   fees.bill_id
+            FROM fees
+            WHERE fees.bill_id IN (?)
+        `, [billIds]);
+
+        const [arrears] = await db.query(`
+            SELECT arrears.arrear_year,
+                   arrears.arrear_amount,
+                   arrears.bill_id,
+                    arrears.entity_id
+            FROM arrears
+            WHERE arrears.entity_id IN (?) AND arrears.cleared_status = "Uncleared" AND arrears.arrear_year < ?
+        `, [businessIds, year]);
+
+        // Return combined data
+        res.status(200).json({ success: true, bill, billItems, fees, arrears });
+    } catch (err) {
+        console.error("Error fetching business bill:", err);
+        res.status(500).json({ success: false, error: "Failed to fetch business bill." });
+    }
+};
+
+
+exports.getCollectorPropertyBills = async (req, res) => {
+    const { clientId, year } = req.query;
+
+    try {
+        // Fetch main bill data
+        const query = `
+            SELECT 
+                    clientDetails.client_id, 
+                    clientDetails.firstname, 
+                    clientDetails.lastname, 
+                    clientDetails.contact, 
+                    propertyDetails.property_id,
+                    propertyDetails.house_number,
+                    locationDetails.location,
+                    bills1.entity_type,
+                    bills1.total_amount,
+                    bills1.arrears,
+                    bills1.year,
+                    bills1.due_date,
+                    bills1.bill_id
+                FROM clients clientDetails
+                LEFT JOIN Properties propertyDetails ON clientDetails.client_id = propertyDetails.client_id
+                LEFT JOIN locations locationDetails ON propertyDetails.location_id = locationDetails.location_id
+                LEFT JOIN bills bills1 ON clientDetails.client_id = bills1.client_id 
+                                    AND propertyDetails.property_id = bills1.property_id
+                LEFT JOIN collector_bill_assignment ON collector_bill_assignment.bill_id = bills1.bill_id
+                WHERE collector_bill_assignment.collector_id = ?
+                AND bills1.year = ?
+                AND bills1.entity_type = ?;
+        `;
+        const [bill] = await db.query(query, [clientId, year, "Property"]);
+
+        if (bill.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: "No property bill found for the specified client and year.",
+            });
+        }
+        // Extract bill IDs
+        const billIds = bill.map(b => b.bill_id);
+
+        // Extract business IDs
+        const businessIds = bill.map(b => b.business_id)
+
+
+        // Fetch bill items and fees for the specific bill IDs
+        const [billItems] = await db.query(`
+            SELECT bill_items.description,
+                   bill_items.amount,
+                   bill_items.bill_id
+            FROM bill_items
+            WHERE bill_items.bill_id IN (?)
+        `, [billIds]);
+
+        const [fees] = await db.query(`
+            SELECT fees.description,
+                   fees.amount,
+                   fees.bill_id
+            FROM fees
+            WHERE fees.bill_id IN (?)
+        `, [billIds]);
+
+        const [arrears] = await db.query(`
+            SELECT arrears.arrear_year,
+                   arrears.arrear_amount,
+                   arrears.bill_id,
+                    arrears.entity_id
+            FROM arrears
+            WHERE arrears.entity_id IN (?) AND arrears.cleared_status = "Uncleared" AND arrears.arrear_year < ?
+        `, [businessIds, year]);
+
+        // Return combined data
+        res.status(200).json({ success: true, bill, billItems, fees, arrears });
+    } catch (err) {
+        console.error("Error fetching property bill:", err);
         res.status(500).json({ success: false, error: "Failed to fetch property bill." });
     }
 };
+
 
 // Fetch combined bill for businesses and properties
 exports.getCombinedBill = async (req, res) => {
