@@ -269,7 +269,6 @@ exports.paymentApproved = async (req, res) => {
       await connection.commit();
     //SMS for Payment
       const [clientDetails] = await db.query(`SELECT clients.contact, clients.firstname FROM clients WHERE clients.client_id = ?`, [client_id])
-      console.log(clientDetails)
       const [billDetails] = await db.query(`SELECT 
       bills.total_amount + IFNULL(bills.arrears, 0) AS billAmount,
       CASE WHEN bills.entity_type = 'Business' THEN businesses.business_name

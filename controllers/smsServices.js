@@ -9,7 +9,7 @@ const senderId = process.env.SENDERID
 const sendSMS = async (recipient, message, msgid) => {
   try {
     const requestData = {
-      senderid: senderId,
+      senderid: 'NAMA',
       destinations: [
         {
           destination: recipient,
