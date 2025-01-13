@@ -255,7 +255,7 @@ exports.showProperties = async (req, res) => {
             `
             const [property] = await db.query(query, [client_id, property_id])
         
-           res.render("propertyFeefixing",{property})
+           res.render("propertyFeeFixing",{property})
         }catch(error){
             console.error(error)
         }
