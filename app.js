@@ -18,6 +18,7 @@ const paymentRoute = require("./routes/paymentRoute");
 const reportRoute = require("./routes/reportRoute")
 const dashboardRoute = require("./routes/dashboardRoute")
 const collectorRoute = require("./routes/collectorRoute")
+const smsRoute = require("./routes/smsRoute")
 const app = express();
 
 app.use(expressLayouts);
@@ -53,6 +54,7 @@ app.use("/payment", paymentRoute);
 app.use("/report", reportRoute);
 app.use("/dashboard", dashboardRoute);
 app.use("/collector", collectorRoute);
+app.use("/sms", smsRoute)
   
 app.use(errorHandler);
 

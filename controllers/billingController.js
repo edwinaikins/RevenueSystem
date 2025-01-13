@@ -556,6 +556,7 @@ exports.createBill = async (req, res) => {
             await connection.query(`DELETE FROM fees WHERE bill_id = ?`, [oldBillId]);
             await connection.query(`DELETE FROM bill_items WHERE bill_id = ?`, [oldBillId]);
             await connection.query(`DELETE FROM bills WHERE bill_id = ?`, [oldBillId]);
+            await connection.query(`DELETE FROM sms WHERE bill_id = ?`, [oldBillId])
         }
 
         // 4. Create Bill
@@ -658,6 +659,23 @@ exports.createBill = async (req, res) => {
                 client_id, entity_type, transaction_date, details, year, credit, debit, bill_id
             ) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?)
         `, [clientId, billItem.entity_type, billItem.entity_type === "Business" ? "Business Operating Permit" : "Property Rate", billItem.year, 0.00, updatedTotal, billId]);
+
+        // 8. Send SMS to DB
+        let message = ""
+        const [clientDetails] = await db.query(`SELECT clients.contact, clients.firstname, clients.lastname FROM clients WHERE client_id = ?`, [clientId]);
+        
+        if(billItem.entity_type === "Business"){
+            const [businessDetails] = await db.query(`SELECT businesses.business_name FROM businesses WHERE business_id = ?`, [businessId])
+            message = `Dear ${clientDetails[0].firstname} ${clientDetails[0].lastname}, your Business Operating Permit bill for ${businessDetails[0].business_name} is GHS${updatedTotal}. Payment can be made to any of our Authorized Revenue Collectors or Directly to the Municipal Assembly. Kindly ensure that this bill is settled by ${billItem.due_date}. For further enquiries, please contact 0546867491. Thank you for your cooperation.`
+        }else if (billItem.entity_type === "Property"){
+            const [propertyDetails] = await db.query(`SELECT Properties.house_number FROM Properties WHERE property_id = ?`, [propertyId])
+            message = `Dear ${clientDetails[0].firstname} ${clientDetails[0].lastname}, your Property Rate bill for ${propertyDetails[0].house_number} is GHS${updatedTotal}. Payment can be made to any of our Authorized Revenue Collectors or Directly to the Municipal Assembly. Kindly ensure that this bill is settled by ${billItem.due_date}. For further enquiries, please contact 0546867491. Thank you for your cooperation.`
+        }
+
+        await db.query(`
+            INSERT INTO sms (bill_id, recipient, message, status) VALUES (?, ?, ?, "Pending")
+            `, [billId, clientDetails[0].contact, message]
+        )
 
         res.status(201).json({
             success: true,

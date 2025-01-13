@@ -242,6 +242,10 @@ async function searchBill() {
              <div class="text-center" style="margin-top: 20px;">
                <button class="btn btn-success" onclick="printSingleBill(${index})">Print This Bill</button>
              </div>
+             <div class="text-right" style="margin-top: 20px;">
+               <button class="btn btn-primary" onclick="printAllBills()">Print All Bills</button>
+             </div>
+
            </div>
          </div>
        </div>
@@ -349,6 +353,71 @@ async function searchBill() {
  // Close the document and trigger the print
  printWindow.document.close();
  setTimeout(() => printWindow.print(), 500);
+}
+
+function printAllBills() {
+  const bills = document.querySelectorAll("[id^='billTemplate-']");
+  if (bills.length === 0) {
+    alert("No bills available to print.");
+    return;
+  }
+
+  let consolidatedContent = "";
+  bills.forEach((bill) => {
+    consolidatedContent += `
+      <div class="bill-container" style="page-break-after: always;">
+        ${bill.innerHTML}
+      </div>`;
+  });
+
+  const printWindow = window.open("", "_blank");
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Print All Bills</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+          }
+          .bill-container {
+            margin: 0 auto;
+            width: 100%;
+          }
+          .header-table, .details-table, .billing-table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+          }
+          .billing-table th, .billing-table td {
+            border: 1px solid black;
+            padding: 8px;
+          }
+          .buttons {
+           display: none; /* Hide buttons in print */
+         }
+          @media print {
+           body {
+             margin: 0;
+             padding: 0;
+             box-sizing: border-box;
+           }
+             .btn {
+             display: none; /* Hides all buttons during print */
+           }
+         }
+          }
+        </style>
+      </head>
+      <body>${consolidatedContent}</body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.onload = () => {
+    printWindow.print();
+    printWindow.close();
+  };
 }
 
 
