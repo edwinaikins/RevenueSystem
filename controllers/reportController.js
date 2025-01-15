@@ -16,3 +16,11 @@ exports.showCollectorBusinessBillReportPage = (req, res) => {
 exports.showCollectorPropertyBillReportPage = (req, res) => {
     res.render("collectorPropertyBillsReport")
 }
+
+exports.showCollectorBusinessSummaryReportPage = (req, res) => {
+    res.render("collectorBusinessSummaryReport")
+}
+
+exports.showCollectorPropertySummaryReportPage = (req, res) => {
+    res.render("collectorPropertySummaryReport")
+}

@@ -14,6 +14,8 @@ router.post("/billReassign", collectorController.reassignBill);
 router.get("/collectorBills", collectorController.showPageCollectorBills);
 router.get("/getCollectorBills/:collectorId", collectorController.getCollectorBills);
 router.put("/updateDistributionStatus", collectorController.updateDistributionStatus);
+router.get("/getCollectorBusinessSummary/:collectorId/:year", collectorController.getCollectorBusinessSummary);
+router.get("/getCollectorPropertySummary/:collectorId/:year", collectorController.getCollectorPropertySummary);
 //router.get("/searchCollector", collectorController.searchCollectors);
 //router.get("/getall", collectorController.getAllCollectors);
 

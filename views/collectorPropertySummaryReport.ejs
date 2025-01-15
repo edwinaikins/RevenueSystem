@@ -1,0 +1,252 @@
+<% pageTitle = 'Report' %>
+<div class="content-wrapper">
+  <!-- Main Content -->
+  <section class="content">
+    <div class="container-fluid">
+      <!-- Search Form -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Search Bill</h3>
+        </div>
+        <div class="card-body">
+          <form id="searchForm">
+            <div class="row">
+              <div class="col-md-4">
+                <label for="collectorId">Collector ID</label>
+                <input type="text" id="collectorId" class="form-control" placeholder="Enter Collector ID">
+              </div>
+              <div class="col-md-4">
+                <label for="year">Year</label>
+                <input type="text" id="year" class="form-control" placeholder="Enter Year">
+              </div>
+              <div class="col-md-4 text-right">
+                <button type="button" class="btn btn-primary mt-4" onclick="searchBill()">Search</button>
+                <button type="button" class="btn btn-secondary mt-4" onclick="printTable()">Print</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="printSection">
+        <div id="summary"></div>
+
+        <table id="billsTable" class="table table-bordered" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Client Name</th>
+                    <th>Contact</th>
+                    <th>House Number</th>
+                    <th>Location</th>
+                    <th>Year</th>
+                    <th>Bill Amount</th>
+                    <th>Date</th>
+                    <th>Signature</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be dynamically added here -->
+            </tbody>
+        </table>
+      </div>
+
+      <div id="pagination" style="display: none; margin-top: 20px;">
+          <button id="prevPage" class="btn btn-light" onclick="changePage(-1)" disabled>Previous</button>
+          <span id="currentPage">Page 1</span>
+          <button id="nextPage" class="btn btn-light" onclick="changePage(1)">Next</button>
+      </div>
+  </div>
+
+  <style>
+      @media print {
+          body {
+              font-family: Arial, sans-serif;
+              margin: 20px;
+          }
+          .content-wrapper, .card, .actions, #pagination {
+              display: none;
+          }
+          #printSection {
+              display: block;
+          }
+          #billsTable {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+          }
+          #billsTable, #billsTable th, #billsTable td {
+              border: 1px solid #ddd;
+          }
+          #billsTable th, #billsTable td {
+              padding: 10px;
+              text-align: left;
+          }
+          #billsTable th {
+              background-color: #f4f4f4;
+              font-weight: bold;
+          }
+          #summary {
+              margin-bottom: 20px;
+          }
+      }
+  </style>
+
+  <script>
+      let currentPage = 1;
+      let totalPages = 1;
+      const limit = 10;
+
+      async function searchBill() {
+          const collectorId = document.getElementById('collectorId').value;
+          const year = document.getElementById('year').value;
+
+          if (!collectorId || !year) {
+              alert('Please provide both Collector ID and Year');
+              return;
+          }
+
+          const response = await fetch(`/collector/getCollectorPropertySummary/${collectorId}/${year}?page=${currentPage}&limit=${limit}`);
+          const data = await response.json();
+
+          if (!response.ok) {
+              alert(data.message || 'Error fetching data');
+              return;
+          }
+
+          displaySummary(data);
+      }
+
+      function displaySummary(data) {
+          // Display collector details
+          const summaryDiv = document.getElementById('summary');
+          summaryDiv.innerHTML = `
+              <h3>Collector Details</h3>
+              <p><strong>Name:</strong> ${data.collector.name}</p>
+              <p><strong>ID:</strong> ${data.collector.collector_id}</p>
+          `;
+
+          // Display bills in the table
+          const table = document.getElementById('billsTable');
+          const tbody = table.querySelector('tbody');
+          tbody.innerHTML = '';
+
+          data.bills.forEach(bill => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                  <td>${bill.firstname} ${bill.lastname}</td>
+                  <td>${bill.contact}</td>
+                  <td>${bill.house_number}</td>
+                  <td>${bill.Location}</td>
+                  <td>${bill.year}</td>
+                  <td>${bill.Bill_Amount}</td>
+                  <td></td>
+                  <td></td>
+              `;
+              tbody.appendChild(row);
+          });
+
+          table.style.display = data.bills.length > 0 ? 'table' : 'none';
+
+          // Display pagination
+          totalPages = data.pagination.totalPages;
+          document.getElementById('currentPage').innerText = `Page ${data.pagination.currentPage}`;
+          document.getElementById('prevPage').disabled = currentPage <= 1;
+          document.getElementById('nextPage').disabled = currentPage >= totalPages;
+
+          document.getElementById('pagination').style.display = totalPages > 1 ? 'block' : 'none';
+      }
+
+      async function fetchAllPages(collectorId, year) {
+          let allBills = [];
+
+          for (let page = 1; page <= totalPages; page++) {
+              const response = await fetch(`/collector/getCollectorPropertySummary/${collectorId}/${year}?page=${page}&limit=${limit}`);
+              const data = await response.json();
+              if (response.ok) {
+                  allBills = allBills.concat(data.bills);
+              }
+          }
+
+          return allBills;
+      }
+
+      async function printTable() {
+    const collectorId = document.getElementById('collectorId').value;
+    const year = document.getElementById('year').value;
+
+    if (!collectorId || !year) {
+        alert('Please provide both Collector ID and Year');
+        return;
+    }
+
+    // Fetch the first page to get collector details
+    const firstPageResponse = await fetch(`/collector/getCollectorPropertySummary/${collectorId}/${year}?page=1&limit=${limit}`);
+    const firstPageData = await firstPageResponse.json();
+
+    if (!firstPageResponse.ok) {
+        alert(firstPageData.message || 'Error fetching data');
+        return;
+    }
+
+    const collector = firstPageData.collector; // Extract collector details
+    const allBills = await fetchAllPages(collectorId, year); // Fetch all pages for bills
+
+    // Populate all bills into the table for printing
+    const table = document.getElementById('billsTable');
+    const tbody = table.querySelector('tbody');
+    tbody.innerHTML = '';
+
+    allBills.forEach(bill => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${bill.firstname} ${bill.lastname}</td>
+            <td>${bill.contact}</td>
+            <td>${bill.house_number}</td>
+            <td>${bill.Location}</td>
+            <td>${bill.year}</td>
+            <td>${bill.Bill_Amount}</td>
+            <td></td>
+            <td></td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    const printContent = `
+        <html>
+            <head>
+                <title>Print Bills</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    table, th, td { border: 1px solid #ddd; }
+                    th, td { padding: 10px; text-align: left; }
+                    th { background-color: #f4f4f4; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <h3>Collector Details</h3>
+                <p><strong>Name:</strong> ${collector.name}</p>
+                <p><strong>ID:</strong> ${collector.collector_id}</p>
+                <table>${table.innerHTML}</table>
+            </body>
+        </html>
+    `;
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+}
+
+   
+
+
+      function changePage(direction) {
+          if ((direction === -1 && currentPage > 1) || (direction === 1 && currentPage < totalPages)) {
+              currentPage += direction;
+              searchBill();
+          }
+      }
+  </script>

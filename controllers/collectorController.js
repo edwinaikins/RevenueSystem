@@ -283,3 +283,142 @@ exports.updateDistributionStatus = async (req, res) => {
             res.status(500).send('Error distribution status');
         }
 }
+
+exports.getCollectorBusinessSummary = async (req, res) => {
+    const { collectorId, year } = req.params;
+    const { page = 1, limit = 10} = req.query;
+
+    // Validate inputs
+    if (!collectorId || isNaN(Number(collectorId))) {
+        return res.status(400).json({ message: "Invalid collector ID" });
+    }
+
+    const offset = (page - 1) * limit;
+
+    try {
+        // Fetch collector details
+        const [collector] = await db.query(
+            "SELECT * FROM revenue_collector WHERE collector_id = ?",
+            [collectorId]
+        );
+
+        if (!collector.length) {
+            return res.status(404).json({ message: "Collector not found" });
+        }
+
+
+        // Count total bills (for pagination)
+        const [totalBills] = await db.query(`
+            SELECT COUNT(*) AS total FROM collector_bill_assignment cba
+            LEFT JOIN bills b ON cba.bill_id = b.bill_id
+            LEFT JOIN businesses bu ON b.business_id = bu.business_id
+            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
+        `, [collectorId, "Business", year]);
+
+        const total = totalBills[0]?.total || 0;
+
+        // Fetch paginated and filtered bills
+        const [assignedBills] = await db.query(`
+           SELECT 	
+                clients.firstname,
+                clients.lastname,
+                clients.contact,
+                clients.client_id,
+                bu.business_name,
+                bu.business_id,
+                l.location AS Location,
+                b.year,
+                (b.total_amount + IFNULL(b.arrears, 0)) AS Bill_Amount
+            FROM collector_bill_assignment cba
+            LEFT JOIN bills b ON cba.bill_id = b.bill_id
+            LEFT JOIN businesses bu ON b.business_id = bu.business_id
+            LEFT JOIN locations l ON bu.location_id = l.location_id
+            LEFT JOIN clients ON bu.client_id = clients.client_id
+            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
+            LIMIT ? OFFSET ?
+        `, [collectorId, "Business", year, Number(limit), Number(offset)]);
+
+        res.json({
+            collector: collector[0],
+            bills: assignedBills,
+            pagination: {
+                total,
+                currentPage: Number(page),
+                totalPages: Math.ceil(total / limit),
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching collector details:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
+exports.getCollectorPropertySummary = async (req, res) => {
+    const { collectorId, year } = req.params;
+    const { page = 1, limit = 10} = req.query;
+
+    // Validate inputs
+    if (!collectorId || isNaN(Number(collectorId))) {
+        return res.status(400).json({ message: "Invalid collector ID" });
+    }
+
+    const offset = (page - 1) * limit;
+
+    try {
+        // Fetch collector details
+        const [collector] = await db.query(
+            "SELECT * FROM revenue_collector WHERE collector_id = ?",
+            [collectorId]
+        );
+
+        if (!collector.length) {
+            return res.status(404).json({ message: "Collector not found" });
+        }
+
+
+        // Count total bills (for pagination)
+        const [totalBills] = await db.query(`
+            SELECT COUNT(*) AS total FROM collector_bill_assignment cba
+            LEFT JOIN bills b ON cba.bill_id = b.bill_id
+            LEFT JOIN Properties p ON b.property_id = p.property_id
+            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
+        `, [collectorId, "Property", year]);
+
+        const total = totalBills[0]?.total || 0;
+
+        // Fetch paginated and filtered bills
+        const [assignedBills] = await db.query(`
+           SELECT 	
+                clients.firstname,
+                clients.lastname,
+                clients.contact,
+                clients.client_id,
+                p.house_number,
+                p.property_id,
+                l.location AS Location,
+                b.year,
+                (b.total_amount + IFNULL(b.arrears, 0)) AS Bill_Amount
+            FROM collector_bill_assignment cba
+            LEFT JOIN bills b ON cba.bill_id = b.bill_id
+            LEFT JOIN Properties p ON b.property_id = p.property_id
+            LEFT JOIN locations l ON p.location_id = l.location_id
+            LEFT JOIN clients ON p.client_id = clients.client_id
+            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
+            LIMIT ? OFFSET ?
+        `, [collectorId, "Property", year, Number(limit), Number(offset)]);
+
+        res.json({
+            collector: collector[0],
+            bills: assignedBills,
+            pagination: {
+                total,
+                currentPage: Number(page),
+                totalPages: Math.ceil(total / limit),
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching collector details:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
