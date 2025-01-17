@@ -1,44 +1,5 @@
 const db = require("../config/db");
 
-// exports.showRegistration = async (req, res) => {
-//     try {
-//         //const [feeFixings] = await db.query('SELECT fee_fixing_id, fee_type FROM fee_fixings');
-//         const [businessTypes] = await db.query('SELECT business_type_id, business_type FROM business_types');
-//         const [locations] = await db.query('SELECT location_id, location FROM locations');
-//         console.log(businessTypes);
-//         res.render("business_property_signage_registration", { businessTypes, locations });
-//     } catch (error) {
-//         console.error('Error fetching options:', error);
-//         res.status(500).send('Server error');
-//     }
-// };
-
-// exports.registerProperty = async (req, res) => {
-//     const { client_id, house_number, digital_address, location_id, entity_type_id } = req.body;
-//     console.log(req.body)
-//     console.log({ client_id, house_number, digital_address, location_id, entity_type_id })
-//     try {
-//         // Step 1: Get the latest property_id
-//         const [results] = await db.query("SELECT property_id FROM Properties ORDER BY id DESC LIMIT 1");
-//         const lastPropertyId = results[0]?.property_id || "NAMA-P-0000";
-
-//         // Step 2: Increment the numeric part of the property_id
-//         const numericPart = parseInt(lastPropertyId.slice(7), 10) + 1;
-//         const newPropertyId = `NAMA-P-${String(numericPart).padStart(4, '0')}`;
-
-//         // Step 3: Insert the new property
-//         await db.query(
-//             "INSERT INTO Properties (client_id, property_id, house_number, digital_address, location_id, entity_type_id) VALUES (?, ?, ?, ?, ?, ?)",
-//             [client_id, newPropertyId, house_number, digital_address, location_id, entity_type_id]
-//         );
-//         res.status(200).json({ msg: "Success" });
-
-
-//     } catch (error) {
-//         console.error('Error creating property:', error);
-//         res.status(500).send("Error creating property");
-//     }
-// };
 exports.registerProperty = async (req, res) => {
     const { client_id, house_number, digital_address, location_id, entity_type_id } = req.body;
 
@@ -94,14 +55,11 @@ exports.registerProperty = async (req, res) => {
 exports.updateProperty = async (req, res) => {
     const propertyId = req.params.id;
     const { house_number, digital_address, location_id, entity_type_id } = req.body;
-    console.log(propertyId)
     try {
         const [result] = await db.query(
             'UPDATE Properties SET house_number = ?, digital_address = ?, location_id = ?, entity_type_id= ? WHERE id = ?',
             [house_number, digital_address, location_id, entity_type_id, propertyId]
         );
-        console.log(result)
-
         if (result.affectedRows === 0) {
             return res.status(404).send("Property not found");
         }
@@ -274,7 +232,7 @@ exports.showProperties = async (req, res) => {
             return res.status(404).send("Property not found");
         }
 
-        res.json({msg:"Business updated successfully"});
+        res.json({msg:"Property updated successfully"});
     }
     catch(error){
         console.error("Error",error)

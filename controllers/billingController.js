@@ -20,11 +20,13 @@ exports.getBusinessBill = async (req, res) => {
                 bills.arrears,
                 bills.year,
                 bills.due_date,
-                bills.bill_id
+                bills.bill_id,
+                entity_type.division
             FROM clients clientDetails
             LEFT JOIN businesses businessDetails ON clientDetails.client_id = businessDetails.client_id
             LEFT JOIN locations locationDetails ON businessDetails.location_id = locationDetails.location_id
             LEFT JOIN bills ON clientDetails.client_id = bills.client_id AND businessDetails.business_id = bills.business_id
+            LEFT JOIN entity_type ON businessDetails.entity_type_id = entity_type.entity_type_id
             WHERE clientDetails.client_id = ? 
               AND bills.year = ? 
               AND bills.entity_type = ?
@@ -98,11 +100,13 @@ exports.getPropertyBill = async (req, res) => {
                 bills.arrears,
                 bills.year,
                 bills.due_date,
-                bills.bill_id
+                bills.bill_id,
+                entity_type.division
             FROM clients clientDetails
             LEFT JOIN Properties propertyDetails ON clientDetails.client_id = propertyDetails.client_id
             LEFT JOIN locations locationDetails ON propertyDetails.location_id = locationDetails.location_id
             LEFT JOIN bills ON clientDetails.client_id = bills.client_id AND propertyDetails.property_id = bills.property_id
+            LEFT JOIN entity_type ON propertyDetails.entity_type_id = entity_type.entity_type_id
             WHERE clientDetails.client_id = ? 
               AND bills.year = ? 
               AND bills.entity_type = ?
@@ -156,6 +160,87 @@ exports.getPropertyBill = async (req, res) => {
     }
 };
 
+// Fetch bill for signage
+exports.getSignageBill = async (req, res) => {
+    const { clientId, year } = req.query;
+
+    try {
+        // Fetch main bill data
+        const query = `
+            SELECT 
+                clientDetails.client_id, 
+                clientDetails.firstname, 
+                clientDetails.lastname, 
+                clientDetails.contact, 
+                signageDetails.signage_id,
+                signageDetails.signage_name,
+                locationDetails.location,
+                bills.entity_type,
+                bills.total_amount,
+                bills.arrears,
+                bills.year,
+                bills.due_date,
+                bills.bill_id,
+                entity_type.division
+            FROM clients clientDetails
+            LEFT JOIN signage signageDetails ON clientDetails.client_id = signageDetails.client_id
+            LEFT JOIN locations locationDetails ON signageDetails.location_id = locationDetails.location_id
+            LEFT JOIN bills ON clientDetails.client_id = bills.client_id AND signageDetails.signage_id = bills.signage_id
+            LEFT JOIN entity_type ON signageDetails.entity_type_id = entity_type.entity_type_id
+            WHERE clientDetails.client_id = ? 
+              AND bills.year = ? 
+              AND bills.entity_type = ?
+        `;
+        const [bill] = await db.query(query, [clientId, year, "Signage"]);
+        console.log(bill)
+        if (bill.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: "No signage bill found for the specified client and year.",
+            });
+        }
+        // Extract bill IDs
+        const billIds = bill.map(b => b.bill_id);
+
+        // Extract business IDs
+        const signageIds = bill.map(b => b.signage_id)
+
+
+        // Fetch bill items and fees for the specific bill IDs
+        const [billItems] = await db.query(`
+            SELECT bill_items.description,
+                   bill_items.amount,
+                   bill_items.bill_id
+            FROM bill_items
+            WHERE bill_items.bill_id IN (?)
+        `, [billIds]);
+
+        const [fees] = await db.query(`
+            SELECT fees.description,
+                   fees.amount,
+                   fees.bill_id
+            FROM fees
+            WHERE fees.bill_id IN (?)
+        `, [billIds]);
+
+        const [arrears] = await db.query(`
+            SELECT arrears.arrear_year,
+                   arrears.arrear_amount,
+                   arrears.bill_id,
+                    arrears.entity_id
+            FROM arrears
+            WHERE arrears.entity_id IN (?) AND arrears.cleared_status = "Uncleared" AND arrears.arrear_year < ?
+        `, [signageIds, year]);
+
+        // Return combined data
+        res.status(200).json({ success: true, bill, billItems, fees, arrears });
+    } catch (err) {
+        console.error("Error fetching signage bill:", err);
+        res.status(500).json({ success: false, error: "Failed to fetch signage bill." });
+    }
+};
+
+
 exports.getCollectorBusinessBills = async (req, res) => {
     const { clientId, year } = req.query;
 
@@ -175,12 +260,14 @@ exports.getCollectorBusinessBills = async (req, res) => {
                 bills1.arrears,
                 bills1.year,
                 bills1.due_date,
-                bills1.bill_id
+                bills1.bill_id,
+                entity_type.division
             FROM clients clientDetails
             LEFT JOIN businesses businessDetails ON clientDetails.client_id = businessDetails.client_id
             LEFT JOIN locations locationDetails ON businessDetails.location_id = locationDetails.location_id
             LEFT JOIN bills bills1 ON clientDetails.client_id = bills1.client_id AND businessDetails.business_id = bills1.business_id
             LEFT JOIN collector_bill_assignment ON collector_bill_assignment.bill_id = bills1.bill_id
+            LEFT JOIN entity_type ON businessDetails.entity_type_id = entity_type.entity_type_id
 			WHERE collector_bill_assignment.collector_id = ?
               AND bills1.year = ?
               AND bills1.entity_type = ?
@@ -254,13 +341,15 @@ exports.getCollectorPropertyBills = async (req, res) => {
                     bills1.arrears,
                     bills1.year,
                     bills1.due_date,
-                    bills1.bill_id
+                    bills1.bill_id,
+                    entity_type.division
                 FROM clients clientDetails
                 LEFT JOIN Properties propertyDetails ON clientDetails.client_id = propertyDetails.client_id
                 LEFT JOIN locations locationDetails ON propertyDetails.location_id = locationDetails.location_id
                 LEFT JOIN bills bills1 ON clientDetails.client_id = bills1.client_id 
                                     AND propertyDetails.property_id = bills1.property_id
                 LEFT JOIN collector_bill_assignment ON collector_bill_assignment.bill_id = bills1.bill_id
+                LEFT JOIN entity_type ON propertyDetails.entity_type_id = entity_type.entity_type_id
                 WHERE collector_bill_assignment.collector_id = ?
                 AND bills1.year = ?
                 AND bills1.entity_type = ?;
@@ -314,6 +403,87 @@ exports.getCollectorPropertyBills = async (req, res) => {
     }
 };
 
+exports.getCollectorSignageBills = async (req, res) => {
+    const { clientId, year } = req.query;
+
+    try {
+        // Fetch main bill data
+        const query = `
+            SELECT 
+                    clientDetails.client_id, 
+                    clientDetails.firstname, 
+                    clientDetails.lastname, 
+                    clientDetails.contact, 
+                    signageDetails.signage_id,
+                    signageDetails.signage_name,
+                    locationDetails.location,
+                    bills1.entity_type,
+                    bills1.total_amount,
+                    bills1.arrears,
+                    bills1.year,
+                    bills1.due_date,
+                    bills1.bill_id,
+                    entity_type.division
+                FROM clients clientDetails
+                LEFT JOIN signage signageDetails ON clientDetails.client_id = signageDetails.client_id
+                LEFT JOIN locations locationDetails ON signageDetails.location_id = locationDetails.location_id
+                LEFT JOIN bills bills1 ON clientDetails.client_id = bills1.client_id 
+                                    AND signageDetails.signage_id = bills1.signage_id
+                LEFT JOIN collector_bill_assignment ON collector_bill_assignment.bill_id = bills1.bill_id
+                LEFT JOIN entity_type ON signageDetails.entity_type_id = entity_type.entity_type_id
+                WHERE collector_bill_assignment.collector_id = ?
+                AND bills1.year = ?
+                AND bills1.entity_type = ?;
+        `;
+        const [bill] = await db.query(query, [clientId, year, "Signage"]);
+
+        if (bill.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: "No signage bill found for the specified client and year.",
+            });
+        }
+        // Extract bill IDs
+        const billIds = bill.map(b => b.bill_id);
+
+        // Extract business IDs
+        const signageIds = bill.map(b => b.signage_id)
+
+
+        // Fetch bill items and fees for the specific bill IDs
+        const [billItems] = await db.query(`
+            SELECT bill_items.description,
+                   bill_items.amount,
+                   bill_items.bill_id
+            FROM bill_items
+            WHERE bill_items.bill_id IN (?)
+        `, [billIds]);
+
+        const [fees] = await db.query(`
+            SELECT fees.description,
+                   fees.amount,
+                   fees.bill_id
+            FROM fees
+            WHERE fees.bill_id IN (?)
+        `, [billIds]);
+
+        const [arrears] = await db.query(`
+            SELECT arrears.arrear_year,
+                   arrears.arrear_amount,
+                   arrears.bill_id,
+                    arrears.entity_id
+            FROM arrears
+            WHERE arrears.entity_id IN (?) AND arrears.cleared_status = "Uncleared" AND arrears.arrear_year < ?
+        `, [signageIds, year]);
+
+        // Return combined data
+        res.status(200).json({ success: true, bill, billItems, fees, arrears });
+    } catch (err) {
+        console.error("Error fetching signage bill:", err);
+        res.status(500).json({ success: false, error: "Failed to fetch signage bill." });
+    }
+};
+
 
 // Fetch combined bill for businesses and properties
 exports.getCombinedBill = async (req, res) => {
@@ -351,150 +521,6 @@ exports.getCombinedBill = async (req, res) => {
 };
 
 
-
-// exports.createBill = async (req, res) => {
-//     const { clientId, billItem, fees = [], replace = false } = req.body;
-//     let connection;
-
-//     try {
-//         if (!clientId || !billItem || !billItem.entity_type || !billItem.entity_id || !billItem.year || !billItem.amount) {
-//             throw new Error("Missing required fields.");
-//         }
-
-//         const validEntityTypes = ['Business', 'Property'];
-//         if (!validEntityTypes.includes(billItem.entity_type)) {
-//             throw new Error('Invalid entity type. Must be "Business" or "Property".');
-//         }
-
-//         let businessId = billItem.entity_type === 'Business' ? billItem.entity_id : null;
-//         let propertyId = billItem.entity_type === 'Property' ? billItem.entity_id : null;
-
-//         // Get a database connection
-//         connection = await db.getConnection();
-//         await connection.beginTransaction(); // Start transaction
-
-//         // 1. Handle Arrears
-//         const [arrears] = await connection.query(`
-//             SELECT COALESCE(SUM(arrear_amount), 0) AS total_arrears
-//             FROM arrears
-//             WHERE entity_type = ? AND entity_id = ? AND cleared_status = 'Uncleared'
-//         `, [billItem.entity_type, billItem.entity_id]);
-
-//         const totalArrears = parseFloat(arrears[0].total_arrears || 0);
-
-//         // 1. Handle Credits
-//         const [credits] = await connection.query(`
-//             SELECT COALESCE(SUM(credit_amount), 0) AS total_credits
-//             FROM credits
-//             WHERE entity_type = ? AND entity_id = ? AND credit_status = 'Unused'
-//         `, [billItem.entity_type, billItem.entity_id]);
-
-//         const totalCredits = parseFloat(credits[0].total_credits|| 0);
-
-//         // 2. Check for Existing Bill
-//         const [existingBill] = await connection.query(`
-//             SELECT bill_id FROM bills 
-//             WHERE client_id = ? AND entity_type = ? AND year = ? AND (business_id = ? OR property_id = ?)
-//             FOR UPDATE
-//         `, [clientId, billItem.entity_type, billItem.year, businessId, propertyId]);
-
-//         if (existingBill.length > 0 && !replace) {
-//             await connection.rollback();
-//                 return res.status(409).json({
-//                     success: false,
-//                     billExists: true,
-//                     message: "A bill for this client and year already exists. Do you want to replace it?",
-//                     billId: existingBill[0].bill_id
-//         })}
-
-//         if (existingBill.length > 0) {
-//             const oldBillId = existingBill[0].bill_id;
-//             await connection.query(`DELETE FROM fees WHERE bill_id = ?`, [oldBillId]);
-//             await connection.query(`DELETE FROM bill_items WHERE bill_id = ?`, [oldBillId]);
-//             await connection.query(`DELETE FROM bills WHERE bill_id = ?`, [oldBillId]);
-//         }
-
-//         // 3. Create Bill
-//         const [result] = await connection.query(`
-//             INSERT INTO bills (client_id, entity_type, business_id, property_id, year, total_amount, arrears, date_created, due_date, bill_status)
-//             VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY), 'Draft')
-//         `, [clientId, billItem.entity_type, businessId, propertyId, billItem.year, billItem.amount, totalArrears]);
-
-//         const billId = result.insertId;
-
-//         // 4. Insert Bill Items and Fees
-//         await connection.query(`
-//             INSERT INTO bill_items (bill_id, entity_id, year, description, amount)
-//             VALUES (?, ?, ?, ?, ?)
-//         `, [billId, billItem.entity_id, billItem.year, billItem.description, billItem.amount]);
-
-//         if (fees.length > 0) {
-//             const feeInserts = fees.map(fee => [billId, fee.description, fee.amount]);
-//             await connection.query(`INSERT INTO fees (bill_id, description, amount) VALUES ?`, [feeInserts]);
-//         }
-
-//         // 5. Update Total Amount
-//         const [totals] = await connection.query(`
-//            SELECT
-//                 COALESCE(bi_total.billItemsTotal, 0) AS billItemsTotal,
-//                 COALESCE(f_total.feesTotal, 0) AS feesTotal
-//             FROM 
-//                 (SELECT bill_id, SUM(amount) AS billItemsTotal
-//                 FROM bill_items
-//                 WHERE bill_id = ?
-//                 GROUP BY bill_id) bi_total
-//             LEFT JOIN
-//                 (SELECT bill_id, SUM(amount) AS feesTotal
-//                 FROM fees
-//                 WHERE bill_id = ?
-//                 GROUP BY bill_id) f_total
-//             ON bi_total.bill_id = f_total.bill_id;
-
-//         `, [billId,billId]);
-//         const updatedTotal = parseFloat(totals[0].billItemsTotal || 0) +
-//             parseFloat(totals[0].feesTotal || 0) +
-//             totalArrears;
-
-//         const debitTotal = parseFloat(totals[0].billItemsTotal || 0) +
-//             parseFloat(totals[0].feesTotal || 0);
-//         await connection.query(`
-//             UPDATE bills 
-//             SET total_amount = ? 
-//             WHERE bill_id = ?
-//         `, [updatedTotal, billId]);
-
-//         // 6. Insert Client Account (Moved Outside Critical Section)
-//         await connection.commit();
-
-//         // Perform account insertion outside transaction to reduce contention
-//         await db.query(`
-//             INSERT INTO client_accounts (
-//                 client_id, entity_type, transaction_date, details, year, credit, debit, bill_id
-//             ) VALUES (?, ?, NOW(), ?, ?, 0.00, ?, ?)
-//         `, [clientId, billItem.entity_type, billItem.entity_type = "Business" ? "Business Operating Permit" : "Property Rate", billItem.year, debitTotal, billId]);
-
-//         res.status(201).json({
-//             success: true,
-//             billId,
-//             updatedTotal,
-//             totalArrears,
-//             message: totalArrears > 0
-//                 ? "Bill created successfully with arrears included."
-//                 : "Bill created successfully with no arrears."
-//         });
-//     } catch (err) {
-//         if (connection) await connection.rollback();
-//         console.error("Transaction failed:", err);
-
-//         res.status(500).json({
-//             success: false,
-//             error: err.message || "Failed to create bill."
-//         });
-//     } finally {
-//         if (connection) connection.release();
-//     }
-// };
-
 exports.createBill = async (req, res) => {
     const { clientId, billItem, fees = [], replace = false } = req.body;
     let connection;
@@ -504,13 +530,14 @@ exports.createBill = async (req, res) => {
             throw new Error("Missing required fields.");
         }
 
-        const validEntityTypes = ['Business', 'Property'];
+        const validEntityTypes = ['Business', 'Property', 'Signage'];
         if (!validEntityTypes.includes(billItem.entity_type)) {
-            throw new Error('Invalid entity type. Must be "Business" or "Property".');
+            throw new Error('Invalid entity type. Must be "Business" or "Property" or "Signage".');
         }
 
         let businessId = billItem.entity_type === 'Business' ? billItem.entity_id : null;
         let propertyId = billItem.entity_type === 'Property' ? billItem.entity_id : null;
+        let signageId = billItem.entity_type === 'Signage' ? billItem.entity_id : null;
 
         connection = await db.getConnection();
         await connection.beginTransaction(); // Start transaction
@@ -537,9 +564,9 @@ exports.createBill = async (req, res) => {
         // 3. Check for Existing Bill
         const [existingBill] = await connection.query(`
             SELECT bill_id FROM bills 
-            WHERE client_id = ? AND entity_type = ? AND year = ? AND (business_id = ? OR property_id = ?)
+            WHERE client_id = ? AND entity_type = ? AND year = ? AND (business_id = ? OR property_id = ? OR signage_id = ?)
             FOR UPDATE
-        `, [clientId, billItem.entity_type, billItem.year, businessId, propertyId]);
+        `, [clientId, billItem.entity_type, billItem.year, businessId, propertyId, signageId]);
 
         if (existingBill.length > 0 && !replace) {
             await connection.rollback();
@@ -561,9 +588,9 @@ exports.createBill = async (req, res) => {
 
         // 4. Create Bill
         const [result] = await connection.query(`
-            INSERT INTO bills (client_id, entity_type, business_id, property_id, year, total_amount, arrears, credits, date_created, due_date, bill_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, 'Draft')
-        `, [clientId, billItem.entity_type, businessId, propertyId, billItem.year, billItem.amount, totalArrears, totalCredits, billItem.due_date]);
+            INSERT INTO bills (client_id, entity_type, business_id, property_id, signage_id, year, total_amount, arrears, credits, date_created, due_date, bill_status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, 'Draft')
+        `, [clientId, billItem.entity_type, businessId, propertyId, signageId, billItem.year, billItem.amount, totalArrears, totalCredits, billItem.due_date]);
 
         const billId = result.insertId;
 
@@ -658,7 +685,7 @@ exports.createBill = async (req, res) => {
             INSERT INTO client_accounts (
                 client_id, entity_type, transaction_date, details, year, credit, debit, bill_id
             ) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?)
-        `, [clientId, billItem.entity_type, billItem.entity_type === "Business" ? "Business Operating Permit" : "Property Rate", billItem.year, 0.00, updatedTotal, billId]);
+        `, [clientId, billItem.entity_type, billItem.entity_type === "Business" ? "Business Operating Permit" : (billItem.entity_type === "Property") ? "Property Rate" : "Signage Operating Permit", billItem.year, 0.00, updatedTotal, billId]);
 
         // 8. Send SMS to DB
         let message = ""
@@ -666,10 +693,13 @@ exports.createBill = async (req, res) => {
         
         if(billItem.entity_type === "Business"){
             const [businessDetails] = await db.query(`SELECT businesses.business_name FROM businesses WHERE business_id = ?`, [businessId])
-            message = `Dear ${clientDetails[0].firstname} ${clientDetails[0].lastname}, your Business Operating Permit bill for ${businessDetails[0].business_name} is GHS${updatedTotal}. Payment can be made to any of our Authorized Revenue Collectors or Directly to the Municipal Assembly. Kindly ensure that this bill is settled by ${billItem.due_date}. For further enquiries, please contact 0546867491. Thank you for your cooperation.`
+            message = `Dear ${clientDetails[0].firstname} ${clientDetails[0].lastname}, your Business Operating Permit bill for ${businessDetails[0].business_name} is GHS${updatedTotal}. Payment can be made to any of our Authorized Revenue Collectors or Directly to the Municipal Assembly. Kindly ensure that this bill is settled by ${billItem.due_date}. For further enquiries, please contact 0244086192. Thank you for your cooperation.`
         }else if (billItem.entity_type === "Property"){
             const [propertyDetails] = await db.query(`SELECT Properties.house_number FROM Properties WHERE property_id = ?`, [propertyId])
-            message = `Dear ${clientDetails[0].firstname} ${clientDetails[0].lastname}, your Property Rate bill for ${propertyDetails[0].house_number} is GHS${updatedTotal}. Payment can be made to any of our Authorized Revenue Collectors or Directly to the Municipal Assembly. Kindly ensure that this bill is settled by ${billItem.due_date}. For further enquiries, please contact 0546867491. Thank you for your cooperation.`
+            message = `Dear ${clientDetails[0].firstname} ${clientDetails[0].lastname}, your Property Rate bill for ${propertyDetails[0].house_number} is GHS${updatedTotal}. Payment can be made to any of our Authorized Revenue Collectors or Directly to the Municipal Assembly. Kindly ensure that this bill is settled by ${billItem.due_date}. For further enquiries, please contact 0244086192. Thank you for your cooperation.`
+        }else{
+            const [signageDetails] = await db.query(`SELECT signage.signage_name FROM signage WHERE signage_id = ?`, [signageId])
+            message = `Dear ${clientDetails[0].firstname} ${clientDetails[0].lastname}, your Signage Operating Permit bill for ${signageDetails[0].signage_name} is GHS${updatedTotal}. Payment can be made to any of our Authorized Revenue Collectors or Directly to the Municipal Assembly. Kindly ensure that this bill is settled by ${billItem.due_date}. For further enquiries, please contact 0244086192. Thank you for your cooperation.`
         }
 
         await db.query(`
@@ -759,12 +789,31 @@ exports.getClientBillData = async (req, res) => {
                     category: row.category,
                     amount: row.amount,
                 })); 
+
+        // Fetch signages owned by the client
+        const [signageRows] = await db.query(`
+            SELECT s.*, t.division AS signage_type, f.amount AS amount, f.category AS category, t.entity_type
+            FROM signage s
+            LEFT JOIN fee_fixing f ON s.fee_fixing_id = f.fee_fixing_id
+            LEFT JOIN entity_type t ON s.entity_type_id = t.entity_type_id
+            WHERE s.client_id = ?
+        `, [clientId]);
+
+        const signages = signageRows.map(row => ({
+                    entity_id: row.signage_id,
+                    entity_type: row.entity_type,
+                    signage_name: row.signage_name,
+                    signage_type: row.signage_type,
+                    category: row.category,
+                    amount: row.amount,
+                })); 
                 
         res.status(200).json({
             success: true,
             client,
             businesses,
-            properties
+            properties,
+            signages
         });
     } catch (err) {
         console.error(err);
@@ -819,7 +868,7 @@ exports.populateArrears = async (req, res) => {
 
         // Step 1: Fetch overdue or partially paid bills
         const [overdueBills] = await connection.query(`
-            SELECT b.bill_id, b.entity_type, b.business_id, b.property_id, b.year, 
+            SELECT b.bill_id, b.entity_type, b.business_id, b.property_id, b.signage_id, b.year, 
                    (b.total_amount - COALESCE(SUM(p.amount), 0)) AS outstanding_amount
             FROM bills b
             LEFT JOIN payments p ON b.bill_id = p.bill_id
@@ -827,7 +876,6 @@ exports.populateArrears = async (req, res) => {
             GROUP BY b.bill_id
             HAVING outstanding_amount > 0
         `);
-            console.log(overdueBills)
         // Step 2: Insert into the arrears table
         for (const bill of overdueBills) {
             await connection.query(`
@@ -838,7 +886,7 @@ exports.populateArrears = async (req, res) => {
                     cleared_status = 'Uncleared';
             `, [
                 bill.entity_type,
-                bill.business_id || bill.property_id,
+                bill.business_id || bill.property_id || bill.signage_id,
                 bill.bill_id,
                 bill.year,
                 bill.outstanding_amount
@@ -853,15 +901,7 @@ exports.populateArrears = async (req, res) => {
 
 exports.getBillByStatus = async (req, res) => {
     const { status } = req.query
-    let status1 = '';
-    let status2 = '';
-    if(status === ''){
-        status1 = 'Draft';
-        status2 = 'Issued';
-    }else{
-        status1 = status;
-    }
-
+   
     try{
     const [results] = await db.query(`
         SELECT 
@@ -869,6 +909,7 @@ exports.getBillByStatus = async (req, res) => {
             CASE 
                 WHEN b.entity_type = 'Business' THEN bu.business_name
                 WHEN b.entity_type = 'Property' THEN p.house_number
+                WHEN b.entity_type = 'Signage' THEN s.signage_name
                 ELSE 'Unknown'
             END AS Entity_Name,
             b.entity_type AS Entity_Type,
@@ -878,13 +919,19 @@ exports.getBillByStatus = async (req, res) => {
         FROM bills b
         LEFT JOIN businesses bu ON b.business_id = bu.business_id
         LEFT JOIN Properties p ON b.property_id = p.property_id
-        LEFT JOIN locations l ON bu.location_id = l.location_id OR p.location_id = l.location_id
+        LEFT JOIN signage s ON b.signage_id = s.signage_id
+        LEFT JOIN locations l ON bu.location_id = l.location_id OR p.location_id = l.location_id OR s.location_id = l.location_id
         LEFT JOIN collector_bill_assignment cba ON b.bill_id = cba.bill_id
         LEFT JOIN revenue_collector rc ON cba.collector_id = rc.collector_id
-        WHERE b.bill_status IN (?,?);
+        WHERE 
+        CASE 
+            WHEN ? = 'ALL' THEN TRUE
+            ELSE b.bill_assigned = ?
+        END;
 
-        `, [status1,status2]
+        `, [status,status]
     )
+
     res.json({ bills: results});
     }
     catch(error){

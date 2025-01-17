@@ -1,8 +1,8 @@
-<% pageTitle = 'Registered Properties' %>
+<% pageTitle = 'Registered Signages' %>
 <div class="container mt-5">
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <input type="text" id="searchBar" class="form-control mb-4 w-75" placeholder="Search properties...">
+            <input type="text" id="searchBar" class="form-control mb-4 w-75" placeholder="Search signages...">
         </div>
         <div class="card-body p-0">
             <table class="table table-striped table-responsive">
@@ -10,14 +10,14 @@
                     <tr>
                         <th style="width: 10px">#</th>
                         <th>Client ID</th>
-                        <th>House Number</th>
+                        <th>Signage Name</th>
                         <th>Digital Address</th>
                         <th>Location</th>
-                        <th>Property Type</th>
+                        <th>Signage Type</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="propertyTable">
+                <tbody id="signageTable">
                     <tr>
                         <td colspan="10" class="text-center">Loading...</td>
                     </tr>
@@ -35,33 +35,33 @@
     let currentPage = 1;
     let searchQuery = '';
 
-    async function fetchProperties(page = 1) {
+    async function fetchSignages(page = 1) {
         try {
-            const response = await fetch(`/property/api/properties?page=${page}&search=${encodeURIComponent(searchQuery)}`);
+            const response = await fetch(`/signage/api/signages?page=${page}&search=${encodeURIComponent(searchQuery)}`);
             if (!response.ok) throw new Error('Failed to fetch data');
             const data = await response.json();
             // Populate table
-            const tableBody = document.getElementById('propertyTable');
-            tableBody.innerHTML = data.properties.length
-                ? data.properties.map((property, index) => `
+            const tableBody = document.getElementById('signageTable');
+            tableBody.innerHTML = data.signages.length
+                ? data.signages.map((signage, index) => `
                     <tr class="align-middle">
                         <td>${index + 1 + (data.currentPage - 1) * 10}</td>
-                        <td>${property.client_id}</td>
-                        <td>${property.house_number}</td>
-                        <td>${property.digital_address}</td>
-                        <td>${property.location}</td>
-                        <td>${property.division}</td>
+                        <td>${signage.client_id}</td>
+                        <td>${signage.signage_name}</td>
+                        <td>${signage.digital_address}</td>
+                        <td>${signage.location}</td>
+                        <td>${signage.division}</td>
                         <td>
-                            <a href="/client/clientDetails/${property.client_id}" class="btn btn-sm btn-secondary">View</a>
+                            <a href="/client/clientDetails/${signage.client_id}" class="btn btn-sm btn-secondary">View</a>
                         </td>
                     </tr>`).join('')
-                : '<tr><td colspan="10" class="text-center">No Properties found</td></tr>';
+                : '<tr><td colspan="10" class="text-center">No Signages found</td></tr>';
 
             // Update pagination
             const pagination = document.getElementById('pagination');
             pagination.innerHTML = Array.from({ length: data.totalPages }, (_, i) => `
                 <li class="page-item ${i + 1 === data.currentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" onclick="fetchProperties(${i + 1})">${i + 1}</a>
+                    <a class="page-link" href="#" onclick="fetchSignages(${i + 1})">${i + 1}</a>
                 </li>`).join('');
         } catch (error) {
             alert(error.message);
@@ -71,10 +71,10 @@
     // Search bar event listener
     document.getElementById('searchBar').addEventListener('input', (e) => {
         searchQuery = e.target.value;
-        fetchProperties(1); // Fetch from page 1 with the new search query
+        fetchSignages(1); // Fetch from page 1 with the new search query
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-        fetchProperties(); // Initial fetch
+        fetchSignages(); // Initial fetch
     });
 </script>

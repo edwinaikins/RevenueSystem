@@ -142,10 +142,18 @@ exports.getClientDetails = async (req, res) => {
 
         const [locations] = await db.query('SELECT * FROM locations');
 
-        // Fetch associated signage
-        //const [signages] = await db.query("SELECT * FROM signages WHERE client_id = ?", [clientId]);
+       // Fetch associated signage
+       const [signages] = await db.query(`
+        SELECT
+        signage.*, 
+        locations.location,
+        entity_type.division
+        FROM signage 
+        LEFT JOIN locations ON signage.location_id = locations.location_id
+        LEFT JOIN entity_type ON signage.entity_type_id = entity_type.entity_type_id
+        WHERE signage.client_id = ?`, [id]);
 
-        // Respond with all data
+        //Respond with all data
 
         res.render("oneClientDetails",{
             layout: false, 
@@ -153,6 +161,7 @@ exports.getClientDetails = async (req, res) => {
             client: client[0],
             businesses,
             properties,
+            signages,
             entity_type,
             locations
         })

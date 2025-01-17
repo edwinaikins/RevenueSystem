@@ -13,8 +13,8 @@
             <form id="searchForm">
               <div class="row">
                 <div class="col-md-4">
-                  <label for="clientId">Client ID</label>
-                  <input type="text" id="clientId" class="form-control" placeholder="Enter Client ID">
+                  <label for="collectorId">Collector ID</label>
+                  <input type="text" id="collectorId" class="form-control" placeholder="Enter Collector ID">
                 </div>
                 <div class="col-md-4">
                   <label for="year">Year</label>
@@ -50,21 +50,21 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function searchBill() {
-  const clientId = document.getElementById("clientId").value.trim();
+  const collectorId = document.getElementById("collectorId").value.trim();
   const year = document.getElementById("year").value.trim();
 
-  if (!clientId || !year) {
-    alert("Please provide both Client ID and Year.");
+  if (!collectorId || !year) {
+    alert("Please provide both Collector ID and Year.");
     return;
   }
 
   try {
     // Fetch data from the API
-    const response = await fetch(`/billing/getPropertyBill?clientId=${clientId}&year=${year}`);
+    const response = await fetch(`/billing/getCollectorSignageBills?clientId=${collectorId}&year=${year}`);
     const data = await response.json();
 
     if (!data.success || !data.bill.length) {
-      alert("No bills found for the provided Client ID and Year.");
+      alert("No bills found for the provided Collector ID and Year.");
       document.getElementById("multiPrintContainer").innerHTML = "";
       return;
     }
@@ -85,6 +85,7 @@ async function searchBill() {
                           month: 'long',
                           day: 'numeric'
                         });
+
       const billTemplate = `
         <div id="billTemplate-${index}" class="bill-container" style="margin-top: 20px;">
           <div class="card">
@@ -119,17 +120,17 @@ async function searchBill() {
                   <td>${billData.client_id}</td>
                 </tr>
                 <tr>
-                  <th>House Number</th>
-                  <td>${billData.house_number}</td>
-                  <th>Property ID</th>
-                  <td>${billData.property_id}</td>
+                  <th>Signage Name</th>
+                  <td>${billData.signage_name}</td>
+                  <th>Signage ID</th>
+                  <td>${billData.signage_id}</td>
                   <th>Location</th>
                   <td>${billData.location}</td>
                 </tr>
                 <tr>
                   <th>Year of Assessment</th>
                   <td>${billData.year}</td>
-                  <th>Property Type</th>
+                  <th>Signage Type</th>
                   <td>${billData.division}</td>
                 </tr>
               </table>
@@ -137,7 +138,7 @@ async function searchBill() {
               <!-- Additional Information -->
               <div class="additional-info" style="margin-bottom: 20px;">
                 <p>
-                  Under Section 1 & 2 of the Nsawam Adoagyiri Municipal bye-laws, a Property Rate of 
+                  Under Section 1 & 2 of the Nsawam Adoagyiri Municipal bye-laws, a Signage Permit of 
                   <strong>${billData.total_amount} Ghana Cedis</strong> has been made in respect of the year ending <strong>${billData.year}</strong>, Payable on Demand.
                 </p>
               </div>
@@ -167,8 +168,8 @@ async function searchBill() {
                 </tr>
               </thead>
               <tbody>
-                ${arrears.filter(arrear => arrear.entity_id === billData.property_id).length ? arrears
-                  .filter(arrear => arrear.entity_id === billData.property_id)
+                ${arrears.filter(arrear => arrear.entity_id === billData.signage_id).length ? arrears
+                  .filter(arrear => arrear.entity_id === billData.signage_id)
                   .map(arrear => `
                     <tr style="border: none;">
                       <td style="border: none;">${arrear.arrear_year}</td>
@@ -221,13 +222,14 @@ async function searchBill() {
               <div class="signature" style="margin-top: 40px; text-align: right;">
                 <img src="/images/signature.png" alt="Signature" style="width: 150px; height: auto; display: inline-block;">
                 <p style="margin-top: 10px;">
-                MUNICIPAL COORDINATING DIRECTOR
+                  MUNICIPAL COORDINATING DIRECTOR
                 </p>
               </div>
 
               <!-- Print Button -->
               <div class="text-center" style="margin-top: 20px;">
                 <button class="btn btn-success" onclick="printSingleBill(${index})">Print This Bill</button>
+                <button class="btn btn-primary" onclick="printAllBills()">Print All Bills</button>
               </div>
             </div>
           </div>
@@ -337,5 +339,69 @@ async function searchBill() {
   };
 }
 
+function printAllBills() {
+  const bills = document.querySelectorAll("[id^='billTemplate-']");
+  if (bills.length === 0) {
+    alert("No bills available to print.");
+    return;
+  }
+
+  let consolidatedContent = "";
+  bills.forEach((bill) => {
+    consolidatedContent += `
+      <div class="bill-container" style="page-break-after: always;">
+        ${bill.innerHTML}
+      </div>`;
+  });
+
+  const printWindow = window.open("", "_blank");
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Print All Bills</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+          }
+          .bill-container {
+            margin: 0 auto;
+            width: 100%;
+          }
+          .header-table, .details-table, .billing-table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+          }
+          .billing-table th, .billing-table td {
+            border: 1px solid black;
+            padding: 8px;
+          }
+          .buttons {
+           display: none; /* Hide buttons in print */
+         }
+          @media print {
+           body {
+             margin: 0;
+             padding: 0;
+             box-sizing: border-box;
+           }
+             .btn {
+             display: none; /* Hides all buttons during print */
+           }
+         }
+          }
+        </style>
+      </head>
+      <body>${consolidatedContent}</body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.onload = () => {
+    printWindow.print();
+    printWindow.close();
+  };
+}
 
 </script>

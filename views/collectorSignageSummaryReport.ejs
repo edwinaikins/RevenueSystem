@@ -37,9 +37,9 @@
                     <th>Client Name</th>
                     <th>Client ID</th>
                     <th>Contact</th>
-                    <th>House Number</th>
-                    <th>Property ID</th>
-                    <th>Property Type</th>
+                    <th>Signage Name</th>
+                    <th>Signage ID</th>
+                    <th>Signage Type</th>
                     <th>Location</th>
                     <th>Year</th>
                     <th>Bill Amount</th>
@@ -108,7 +108,7 @@
               return;
           }
 
-          const response = await fetch(`/collector/getCollectorPropertySummary/${collectorId}/${year}?page=${currentPage}&limit=${limit}`);
+          const response = await fetch(`/collector/getCollectorSignageSummary/${collectorId}/${year}?page=${currentPage}&limit=${limit}`);
           const data = await response.json();
 
           if (!response.ok) {
@@ -139,8 +139,8 @@
                   <td>${bill.firstname} ${bill.lastname}</td>
                   <td>${bill.client_id}</td>
                   <td>${bill.contact}</td>
-                  <td>${bill.house_number}</td>
-                  <td>${bill.property_id}</td>
+                  <td>${bill.signage_name}</td>
+                  <td>${bill.signage_id}</td>
                   <td>${bill.division}</td>
                   <td>${bill.Location}</td>
                   <td>${bill.year}</td>
@@ -166,7 +166,7 @@
           let allBills = [];
 
           for (let page = 1; page <= totalPages; page++) {
-              const response = await fetch(`/collector/getCollectorPropertySummary/${collectorId}/${year}?page=${page}&limit=${limit}`);
+              const response = await fetch(`/collector/getCollectorSignageSummary/${collectorId}/${year}?page=${page}&limit=${limit}`);
               const data = await response.json();
               if (response.ok) {
                   allBills = allBills.concat(data.bills);
@@ -186,7 +186,7 @@
     }
 
     // Fetch the first page to get collector details
-    const firstPageResponse = await fetch(`/collector/getCollectorPropertySummary/${collectorId}/${year}?page=1&limit=${limit}`);
+    const firstPageResponse = await fetch(`/collector/getCollectorSignageSummary/${collectorId}/${year}?page=1&limit=${limit}`);
     const firstPageData = await firstPageResponse.json();
 
     if (!firstPageResponse.ok) {
@@ -208,8 +208,8 @@
             <td>${bill.firstname} ${bill.lastname}</td>
             <td>${bill.client_id}</td>
             <td>${bill.contact}</td>
-            <td>${bill.house_number}</td>
-            <td>${bill.property_id}</td>
+            <td>${bill.signage_name}</td>
+            <td>${bill.signage_id}</td>
             <td>${bill.division}</td>
             <td>${bill.Location}</td>
             <td>${bill.year}</td>

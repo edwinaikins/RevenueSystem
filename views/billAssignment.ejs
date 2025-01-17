@@ -23,9 +23,9 @@
         <div class="card-header">
             <h5>All Bills</h5>
             <select class="form-control mb-3" id="filterStatus">
-                <option value="">All Bills</option>
-                <option value="Issued">Assigned</option>
-                <option value="Draft">Unassigned</option>
+                <option value="ALL">All Bills</option>
+                <option value="Yes">Assigned</option>
+                <option value="No" selected>Unassigned</option>
             </select>
         </div>
         <div class="card-body">
@@ -229,8 +229,8 @@
     // Initialize the page with default filter
     document.addEventListener('DOMContentLoaded', function () {
     populateCollectorDropdown();
-    populateAllBillsTable('Draft'); // Load only unassigned bills by default
-    document.getElementById('filterStatus').value = 'Draft'; // Set default filter selection in the dropdown
+    populateAllBillsTable('No'); // Load only unassigned bills by default
+    document.getElementById('filterStatus').value = 'No'; // Set default filter selection in the dropdown
     document.getElementById('batchAssignButton').addEventListener('click', handleBatchAssign);
     document.getElementById('confirmReassignButton').addEventListener('click', handleReassign);
 });

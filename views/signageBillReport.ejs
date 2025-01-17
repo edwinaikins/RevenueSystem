@@ -60,7 +60,7 @@ async function searchBill() {
 
   try {
     // Fetch data from the API
-    const response = await fetch(`/billing/getPropertyBill?clientId=${clientId}&year=${year}`);
+    const response = await fetch(`/billing/getSignageBill?clientId=${clientId}&year=${year}`);
     const data = await response.json();
 
     if (!data.success || !data.bill.length) {
@@ -119,17 +119,17 @@ async function searchBill() {
                   <td>${billData.client_id}</td>
                 </tr>
                 <tr>
-                  <th>House Number</th>
-                  <td>${billData.house_number}</td>
+                  <th>Signage Name</th>
+                  <td>${billData.signage_name}</td>
                   <th>Property ID</th>
-                  <td>${billData.property_id}</td>
+                  <td>${billData.signage_id}</td>
                   <th>Location</th>
                   <td>${billData.location}</td>
                 </tr>
                 <tr>
                   <th>Year of Assessment</th>
                   <td>${billData.year}</td>
-                  <th>Property Type</th>
+                  <th>Signage Type</th>
                   <td>${billData.division}</td>
                 </tr>
               </table>
@@ -137,7 +137,7 @@ async function searchBill() {
               <!-- Additional Information -->
               <div class="additional-info" style="margin-bottom: 20px;">
                 <p>
-                  Under Section 1 & 2 of the Nsawam Adoagyiri Municipal bye-laws, a Property Rate of 
+                  Under Section 1 & 2 of the Nsawam Adoagyiri Municipal bye-laws, a Signage Permit of 
                   <strong>${billData.total_amount} Ghana Cedis</strong> has been made in respect of the year ending <strong>${billData.year}</strong>, Payable on Demand.
                 </p>
               </div>
@@ -167,8 +167,8 @@ async function searchBill() {
                 </tr>
               </thead>
               <tbody>
-                ${arrears.filter(arrear => arrear.entity_id === billData.property_id).length ? arrears
-                  .filter(arrear => arrear.entity_id === billData.property_id)
+                ${arrears.filter(arrear => arrear.entity_id === billData.signage_id).length ? arrears
+                  .filter(arrear => arrear.entity_id === billData.signage_id)
                   .map(arrear => `
                     <tr style="border: none;">
                       <td style="border: none;">${arrear.arrear_year}</td>
@@ -221,7 +221,7 @@ async function searchBill() {
               <div class="signature" style="margin-top: 40px; text-align: right;">
                 <img src="/images/signature.png" alt="Signature" style="width: 150px; height: auto; display: inline-block;">
                 <p style="margin-top: 10px;">
-                MUNICIPAL COORDINATING DIRECTOR
+                  MUNICIPAL COORDINATING DIRECTOR
                 </p>
               </div>
 

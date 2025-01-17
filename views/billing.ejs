@@ -30,6 +30,9 @@
 
     <!-- Properties Section -->
     <div id="propertyCardsContainer" class="mt-4"></div>
+
+    <!-- Signages Section -->
+    <div id="signageCardsContainer" class="mt-4"></div>
   </section>
 </div>
 
@@ -90,6 +93,7 @@
   let clientDetails = {};
   let businesses = [];
   let properties = [];
+  let signages = [];
   let extraItems = {}; // Store extra items for each entity ID
   let editEntityId = null; // Current entity ID for editing
   let editExtraItemIndex = null; // Current extra item being edited
@@ -106,13 +110,15 @@
         clientDetails = result.client;
         businesses = result.businesses || [];
         properties = result.properties || [];
+        signages = result.signages || [];
         extraItems = {}; // Initialize extra items for all entities
-        [...businesses, ...properties].forEach((entity) => {
+        [...businesses, ...properties, ...signages].forEach((entity) => {
           extraItems[entity.entity_id] = []; // Create a unique array for each entity
         });
         renderClientDetails();
         renderBusinessCards();
         renderPropertyCards();
+        renderSignageCards();
       } else {
         alert("Client not found");
       }
@@ -155,69 +161,78 @@
     });
   }
 
-  function createCard(entity, type) {
-    if (!entity.entity_id) {
-      console.error(`Missing entity_id for ${type}:`, entity);
-      return null;
-    }
+  function renderSignageCards() {
+    const container = document.getElementById("signageCardsContainer");
+    container.innerHTML = "";
+    signages.forEach((signage) => {
+      container.appendChild(createCard(signage, "Signage"));
+    });
+  }
 
-    const card = document.createElement("div");
-    card.className = "card mb-4";
-    card.innerHTML = `
-      <div class="card-header">
-        <h5>${entity.name || entity.house_number || entity.business_name}</h5>
-        <div class="form-inline">
-          <label for="yearSelect-${entity.entity_id}" class="mr-2">Year:</label>
-          <select id="yearSelect-${entity.entity_id}" class="form-control">
-            ${generateYearOptions()}
-          </select>
+  function createCard(entity, type) {
+  if (!entity.entity_id) {
+    console.error(`Missing entity_id for ${type}:`, entity);
+    return null;
+  }
+
+  const card = document.createElement("div");
+  card.className = "card mb-4";
+  card.innerHTML = `
+    <div class="card-header">
+      <h5>${entity.name || entity.house_number || entity.business_name || entity.signage_name}</h5>
+      <div class="form-inline">
+        <label for="yearSelect-${entity.entity_id}" class="mr-2">Year:</label>
+        <select id="yearSelect-${entity.entity_id}" class="form-control">
+          ${generateYearOptions()}
+        </select>
         <label for="dueDate-${entity.entity_id}" class="mr-2">Due Date:</label>
         <input type="date" id="dueDate-${entity.entity_id}" class="form-control">
-        </div>
       </div>
-      <div class="card-body">
-        <h6>${type === "Business" ? `Business ID: ${entity.entity_id}`: `Property ID: ${entity.entity_id}`}</h6>
-        <h6>${`Entity Type: ${entity.entity_type}`}</h6>
-        <h6>${type === "Business" ? `Business Type: ${entity.business_type}`: `Property Type: ${entity.property_type}`}</h6>
-        <h6>${`Category: ${entity.category}`}</h6>
-        <table class="table table-bordered mt-3">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Amount</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>${type === "Business" ? "Business Operating Permit" : "Property Rate"}</td>
-              <td>${entity.amount}</td>
-              <td>
-                <button class="btn btn-sm btn-warning" onclick="openMainItemModal('${entity.entity_id}', ${entity.amount}, '${type}')">Edit</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    </div>
+    <div class="card-body">
+      <h6>${type === "Business" ? `Business ID: ${entity.entity_id}` : type === "Signage" ? `Signage ID: ${entity.entity_id}` : `Property ID: ${entity.entity_id}`}</h6>
+      <h6>${`Entity Type: ${type}`}</h6>
+      <h6>${type === "Business" ? `Business Type: ${entity.business_type}` : type === "Signage" ? `Signage Type: ${entity.signage_type}` : `Property Type: ${entity.property_type}`}</h6>
+      <h6>${`Category: ${entity.category}`}</h6>
+      <table class="table table-bordered mt-3">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${type === "Business" ? "Business Operating Permit" : type === "Signage" ? "Signage Permit" : "Property Rate"}</td>
+            <td>${entity.amount}</td>
+            <td>
+              <button class="btn btn-sm btn-warning" onclick="openMainItemModal('${entity.entity_id}', ${entity.amount}, '${type}')">Edit</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-        <h6>Extra Items</h6>
-        <table class="table table-bordered mt-3" id="extraItemsTable-${entity.entity_id}">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Amount</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <h6>Extra Items</h6>
+      <table class="table table-bordered mt-3" id="extraItemsTable-${entity.entity_id}">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
 
-        <button class="btn btn-success" onclick="openExtraItemModal('${entity.entity_id}')">Add Extra Item</button>
-        <button class="btn btn-primary float-right" onclick="saveEntityBill('${entity.entity_id}', '${type}')">Save Bill</button>
-      </div>
-    `;
-    renderExtraItems(entity.entity_id);
-    return card;
-  }
+      <button class="btn btn-success" onclick="openExtraItemModal('${entity.entity_id}')">Add Extra Item</button>
+      <button class="btn btn-primary float-right" onclick="saveEntityBill('${entity.entity_id}', '${type}')">Save Bill</button>
+    </div>
+  `;
+  renderExtraItems(entity.entity_id);
+  return card;
+}
+
 
   function renderExtraItems(entityId) {
     const tbody = document.querySelector(`#extraItemsTable-${entityId} tbody`);
@@ -253,11 +268,12 @@
     const amount = parseFloat(document.getElementById("editMainItemAmount").value);
 
     // Update the corresponding entity
-    const entity = [...businesses, ...properties].find((e) => e.entity_id === editEntityId);
+    const entity = [...businesses, ...properties, ...signages].find((e) => e.entity_id === editEntityId);
     if (entity) {
       entity.amount = amount;
       renderBusinessCards();
       renderPropertyCards();
+      renderSignageCards();
     }
 
     $("#editMainItemModal").modal("hide");
@@ -315,7 +331,7 @@
 // Updated saveEntityBill function
 window.saveEntityBill = async function (entityId, entityType, replace = false) {
   // Combine businesses and properties to find the entity
-  const entity = [...businesses, ...properties].find((e) => e.entity_id === entityId);
+  const entity = [...businesses, ...properties, ...signages].find((e) => e.entity_id === entityId);
 
   if (!entity) {
     alert(`${entityType} not found. Please refresh and try again.`);
@@ -330,14 +346,14 @@ window.saveEntityBill = async function (entityId, entityType, replace = false) {
   const fees = extraItems[entityId] || [];
 
   // Main description based on entity type
-  const mainDescription = entityType === "Business" ? "Business Operating Permit" : "Property Rate";
+  const mainDescription = entityType === "Business" ? "Business Operating Permit" : entityType === "Signage" ? "Signage Fee" : "Property Rate";
 
   // Construct the payload
   const payload = {
     clientId: clientDetails.client_id, // Ensure client data exists
     billItem: {
       entity_id: entity.entity_id,
-      entity_type: entityType, // "Business" or "Property"
+      entity_type: entityType, // "Business" or "Property or Signage"
       year: year,
       due_date: due_date,
       description: mainDescription,
@@ -373,10 +389,10 @@ window.saveEntityBill = async function (entityId, entityType, replace = false) {
     } 
     else if (result.success) {
       alert(
-        `${entityType} bill for ${entity.name || entity.business_name || entity.house_number} (Year: ${year}) saved successfully!`
+        `${entityType} bill for ${entity.name || entity.business_name || entity.house_number || entity.signage_name} (Year: ${year}) saved successfully!`
       );
     } else {
-      alert(`Failed to save ${entityType} bill for ${entity.name || entity.business_name || entity.property_name}.`);
+      alert(`Failed to save ${entityType} bill for ${entity.name || entity.business_name || entity.property_name || entity.signage_name}.`);
     }
   } catch (error) {
     console.error("Error saving bill:", error);

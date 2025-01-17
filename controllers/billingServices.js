@@ -30,6 +30,8 @@ exports.insertClientAccount = async (bill) => {
             ? 'Business Operating Permit'
             : bill.entity_type === 'Property'
             ? 'Property Rate'
+            : bill.entity_type === 'Signage'
+            ? 'Signage Operating Permit'
             : bill.entity_type;
 
         await db.query(`

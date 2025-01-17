@@ -35,8 +35,11 @@
             <thead>
                 <tr>
                     <th>Client Name</th>
+                    <th>Client ID</th>
                     <th>Contact</th>
                     <th>Business Name</th>
+                    <th>Business ID</th>
+                    <th>Business Type</th>
                     <th>Location</th>
                     <th>Year</th>
                     <th>Bill Amount</th>
@@ -134,8 +137,11 @@
               const row = document.createElement('tr');
               row.innerHTML = `
                   <td>${bill.firstname} ${bill.lastname}</td>
+                  <td>${bill.client_id}</td>
                   <td>${bill.contact}</td>
                   <td>${bill.business_name}</td>
+                  <td>${bill.business_id}</td>
+                  <td>${bill.division}</td>
                   <td>${bill.Location}</td>
                   <td>${bill.year}</td>
                   <td>${bill.Bill_Amount}</td>
@@ -200,8 +206,11 @@
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${bill.firstname} ${bill.lastname}</td>
+            <td>${bill.client_id}</td>
             <td>${bill.contact}</td>
             <td>${bill.business_name}</td>
+            <td>${bill.business_id}</td>
+            <td>${bill.division}</td>
             <td>${bill.Location}</td>
             <td>${bill.year}</td>
             <td>${bill.Bill_Amount}</td>

@@ -66,7 +66,7 @@
         pendingPayments = data.map(payment => ({
           paymentId: payment.payment_id,
           clientId: payment.client_id,
-          entityName: payment.business_name || payment.house_number,
+          entityName: payment.business_name || payment.house_number || payment.signage_name,
           entityType: payment.entity_type,
           details: payment.details,
           amount: parseFloat(payment.amount),

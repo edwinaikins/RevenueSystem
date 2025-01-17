@@ -16,6 +16,7 @@ router.get("/getCollectorBills/:collectorId", collectorController.getCollectorBi
 router.put("/updateDistributionStatus", collectorController.updateDistributionStatus);
 router.get("/getCollectorBusinessSummary/:collectorId/:year", collectorController.getCollectorBusinessSummary);
 router.get("/getCollectorPropertySummary/:collectorId/:year", collectorController.getCollectorPropertySummary);
+router.get("/getCollectorSignageSummary/:collectorId/:year", collectorController.getCollectorSignageSummary);
 //router.get("/searchCollector", collectorController.searchCollectors);
 //router.get("/getall", collectorController.getAllCollectors);
 

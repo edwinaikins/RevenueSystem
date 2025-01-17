@@ -13,6 +13,7 @@ const clientRoute = require("./routes/clientRoute");
 const businessRoute = require("./routes/businessRoute");
 const settingsRoute = require("./routes/settingsRoute");
 const propertyRoute = require("./routes/propertyRoute");
+const signageRoute = require("./routes/signageRoute");
 const billingRoute = require("./routes/billingRoute");
 const paymentRoute = require("./routes/paymentRoute");
 const reportRoute = require("./routes/reportRoute")
@@ -49,6 +50,7 @@ app.use("/client", clientRoute);
 app.use("/business", businessRoute);
 app.use("/settings", settingsRoute);
 app.use("/property", propertyRoute);
+app.use("/signage", signageRoute)
 app.use("/billing", billingRoute);
 app.use("/payment", paymentRoute);
 app.use("/report", reportRoute);

@@ -79,12 +79,28 @@ exports.getClientPaymentData = async (req, res) => {
         GROUP BY Properties.house_number, Properties.property_id, bills.bill_id;`,
         [client_id]
       );
-  
+      
+      const [signageRows] = await db.query(
+        `SELECT signage.signage_name, signage.signage_id, bills.*, DATE_FORMAT(bills.due_date, '%d-%m-%Y') AS formatted_due_date, COALESCE(SUM(payments.amount), 0) AS total_payments
+         FROM bills
+         LEFT JOIN signage ON bills.signage_id = signage.signage_id
+ 
+         LEFT JOIN payments ON bills.bill_id = payments.bill_id AND payments.payment_status = 'approved' AND payments.entity_type = 'Signage'
+         WHERE 
+             signage.client_id = ?
+             AND bills.bill_id = (SELECT MAX(bill_id) 
+                                   FROM bills 
+                                   WHERE bills.signage_id = signage.signage_id)
+         GROUP BY signage.signage_name, signage.signage_id, bills.bill_id;`,
+         [client_id]
+       );
+
       res.json({
         success: true,
         client: clientRows[0],
         businessPayments: businessRows,
         propertyPayments: propertyRows,
+        signagePayments: signageRows
       });
     } catch (error) {
       console.error('Error fetching client data:', error);
@@ -103,11 +119,12 @@ exports.getClientPaymentData = async (req, res) => {
   exports.getPayments = async (req, res) => {
     try{
         const [payments] = await db.query(
-            `SELECT payments.*, bills.business_id, bills.property_id, businesses.business_name, Properties.house_number
+            `SELECT payments.*, bills.business_id, bills.property_id, bills.signage_id, businesses.business_name, Properties.house_number, signage.signage_name
                 FROM payments
                 LEFT JOIN bills ON payments.bill_id = bills.bill_id
                 LEFT JOIN businesses ON bills.business_id = businesses.business_id
                 LEFT JOIN Properties ON bills.property_id = Properties.property_id
+                LEFT JOIN signage ON bills.signage_id = signage.signage_id
                 WHERE payment_status = "Pending"`
         )
         res.json(payments)
@@ -240,9 +257,9 @@ exports.paymentApproved = async (req, res) => {
           if (bill.length === 0) throw new Error(`Bill ID ${bill_id} not found.`);
           console.log({Remaining_Amount: remainingAmount})
           const totalAmount = parseFloat(bill[0].total_amount);
-          console.log({totalAmount: totalAmount})
+          
           const newTotal = Math.max(totalAmount - remainingAmount, 0);
-          console.log({newTotal: newTotal})
+         
           const newStatus = newTotal === 0 ? "Paid" : "Partial Payment";
 
           await connection.query(
@@ -273,6 +290,7 @@ exports.paymentApproved = async (req, res) => {
       bills.total_amount + IFNULL(bills.arrears, 0) AS billAmount,
       CASE WHEN bills.entity_type = 'Business' THEN businesses.business_name
 		WHEN bills.entity_type = 'Property' THEN Properties.house_number
+        WHEN bills.entity_type = 'Signage' THEN signage.signage_name
 		ELSE 'Unknown'
 		END AS Entity_Name,
         bills.due_date
@@ -280,6 +298,7 @@ exports.paymentApproved = async (req, res) => {
             bills
         LEFT JOIN businesses ON bills.business_id = businesses.business_id
         LEFT JOIN Properties ON bills.property_id = Properties.property_id
+        LEFT JOIN signage ON bills.signage_id = signage.signage_id
         WHERE
             bills.bill_id = ?`, [bill_id])
         let message = ''
@@ -287,6 +306,8 @@ exports.paymentApproved = async (req, res) => {
       message = `We acknowledge receipt of your Business Operating Permit payment of GHS${amount} for ${billDetails[0].Entity_Name}. The outstanding balance is GHS${parseFloat(billDetails[0].billAmount) - parseFloat(amount)}.`;
       }else if(entity_type === "Property"){
       message = `We acknowledge receipt of your Property Rate payment of GHS${amount} for ${billDetails[0].Entity_Name}. The outstanding balance is GHS${parseFloat(billDetails[0].billAmount) - parseFloat(amount)}.`;
+      }else{
+        message = `We acknowledge receipt of your Signage Operating Permit payment of GHS${amount} for ${billDetails[0].Entity_Name}. The outstanding balance is GHS${parseFloat(billDetails[0].billAmount) - parseFloat(amount)}.`;
       }
       const msgid = `BILL-${bill_id}`;
       const recipient = `0${clientDetails[0].contact}`

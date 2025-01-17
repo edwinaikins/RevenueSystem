@@ -79,7 +79,12 @@ async function searchBill() {
       const items = billItems.filter((item) => item.bill_id === billData.bill_id);
       const feeItems = fees.filter((fee) => fee.bill_id === billData.bill_id);
       const arrearitems = arrears.filter((arrear) => arrear.entity_id === billData.business_id);
-
+      const formattedDate = new Date(billData.due_date).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        });
       const billTemplate = `
         <div id="billTemplate-${index}" class="bill-container" style="margin-top: 20px;">
           <div class="card">
@@ -93,7 +98,7 @@ async function searchBill() {
                   <td style="width: 60%; text-align: center;">
                     <h2 style="font-size: 1.5rem;">NSAWAM ADOAGYIRI MUNICIPAL ASSEMBLY</h2>
                     <h3 style="font-size: 1.2rem;">GENERAL DEMAND NOTICE</h3>
-                    <p style="font-size: 0.9rem;">Website: <a href="http://www.nama.gov.gh">www.nama.gov.gh</a> | Contact: 0593039517 / 0507368543</p>
+                    <p style="font-size: 0.9rem;">Website: <a href="http://www.nama.gov.gh">www.nama.gov.gh</a> | Contact: 0244086192</p>
                   </td>
                   <td style="width: 20%; text-align: right;">
                     <img src="/images/ghana.jpeg" alt="Right Logo" style="width: 80px;">
@@ -124,6 +129,8 @@ async function searchBill() {
                 <tr>
                   <th>Year of Assessment</th>
                   <td>${billData.year}</td>
+                  <th>Business Type</th>
+                  <td>${billData.division}</td>
                 </tr>
               </table>
 
@@ -206,7 +213,7 @@ async function searchBill() {
                   <li>At the Nsawam Adoagyiri Municipal offices. Office Hours: From Monday to Friday 8:00 a.m. to 12:30 and 1:30 p.m. to 5:00 p.m.</li>
                   <li>By post to the Municipal Finance Officer, Nsawam Adoagyiri Municipal Assembly, P.O. Box NW 4, Nsawam.</li>
                   <li>Cheques, Postal, and Money Orders should be made payable to Nsawam Adoagyiri Municipal Assembly. Cheques drawn for payment should be marked "Commission to drawers account".</li>
-                  <li>It shall be the duty of every person liable to pay these rates to do so at the office of the Nsawam Adoagyiri Municipal Assembly or to any accredited person on or before <strong>Tuesday, April 23, 2024 "BY ORDER OF THE NSAWAM ADOAGYIRI MUNICIPAL ASSEMBLY"</strong>.</li>
+                  <li>It shall be the duty of every person liable to pay these rates to do so at the office of the Nsawam Adoagyiri Municipal Assembly or to any accredited person on or before <strong>${formattedDate} "BY ORDER OF THE NSAWAM ADOAGYIRI MUNICIPAL ASSEMBLY"</strong>.</li>
                 </ol>
               </div>
 
@@ -214,8 +221,7 @@ async function searchBill() {
               <div class="signature" style="margin-top: 40px; text-align: right;">
                 <img src="/images/signature.png" alt="Signature" style="width: 150px; height: auto; display: inline-block;">
                 <p style="margin-top: 10px;">
-                  Municipal Finance Officer<br>
-                  Nsawam Adoagyiri Municipal Assembly
+                  MUNICIPAL COORDINATING DIRECTOR
                 </p>
               </div>
 
@@ -325,7 +331,10 @@ async function searchBill() {
 
   // Close the document and trigger the print
   printWindow.document.close();
-  setTimeout(() => printWindow.print(), 500);
+  printWindow.onload = () => {
+    printWindow.print();
+    printWindow.close();
+  };
 }
 
 

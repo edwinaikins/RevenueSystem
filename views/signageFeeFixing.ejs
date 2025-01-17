@@ -1,0 +1,148 @@
+<% pageTitle = 'Signage Fee Fixing' %>
+<div class="content-wrapper">
+    <!-- Main content -->
+    <div class="app-content">
+        <div class="container-fluid">
+            <!-- Client Information Card -->
+            <div class="card card-primary card-outline mt-5">
+                <div class="card-header">
+                    <h5 class="card-title">Signage Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Signage Id:</strong> <%= signage[0].signage_id %></p>
+                            <p><strong>Signage Name:</strong> <%= signage[0].signage_name %></p>
+                            <p><strong>Digital Address</strong> <%= signage[0].digital_address %></p>
+                            <p><strong>Signage Type</strong> <%= signage[0].division %></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Fee Fixing Category:</strong> <%= signage[0].category %></p>
+                            <p><strong>Amount:</strong> <%= signage[0].amount %></p>
+                            <p><strong>Linked Status:</strong> 
+                                <% if (signage[0].category === null) { %>
+                                  <span style="color: red; font-weight: bold;">Unlinked</span>
+                                <% } else { %>
+                                  <span style="color: green; font-weight: bold;">Linked</span>
+                                <% } %></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form to Link Signage to Fee Fixing -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3 class="card-title">Link Signage to Fee Fixing</h3>
+                </div>
+                <div class="card-body">
+                    <form id="linkSignageForm">
+                        <div class="form-group">
+                            <label for="signageType">Property Type</label>
+                            <input type="text" id="signageType" class="form-control" value="<%= signage[0].division %>" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="feeFixingCategory">Fee Fixing Category</label>
+                            <select id="feeFixingCategory" class="form-control" required>
+                                <!-- Options populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="amount">Amount</label>
+                            <input type="text" id="amount" class="form-control" value="" readonly>
+                        </div>
+                        <button type="button" id="linkSignageBtn" class="btn btn-success" disabled>Link</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// Wait for the DOM to fully load
+document.addEventListener('DOMContentLoaded', function () {
+    const feeFixingCategory = document.getElementById('feeFixingCategory');
+    const amountField = document.getElementById('amount');
+    const linkSignageBtn = document.getElementById('linkSignageBtn');
+    const entity_type_id = "<%=signage[0].entity_type_id %>"; // Dynamic entity type ID
+    const signageId = "<%=signage[0].signage_id %>"
+
+    // console.log('Business Type ID:', entity_type_id);
+
+    // Fetch Fee Fixing Categories from the Server
+    async function fetchFeeFixingCategories() {
+        try {
+            const response = await fetch(`/signage/feefixingWithSignageType/${entity_type_id}`);
+            if (!response.ok) throw new Error('Failed to fetch categories');
+
+            const categories = await response.json();
+
+            feeFixingCategory.innerHTML = '<option value="">Select Category</option>'; // Clear previous options
+            categories.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.fee_fixing_id;
+                option.textContent = category.category;
+                option.dataset.amount = category.amount; // Store amount in data attribute
+                feeFixingCategory.appendChild(option);
+            });
+
+            // Enable the "Link" button once categories are loaded
+            linkSignageBtn.disabled = false;
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+            alert(`Error loading fee fixing categories: ${error.message}`);
+        }
+    }
+
+    // Update the amount dynamically
+    feeFixingCategory.addEventListener('change', function () {
+        const selectedOption = feeFixingCategory.options[feeFixingCategory.selectedIndex];
+        amountField.value = selectedOption?.dataset?.amount || '';
+    });
+
+    // Handle Form Submission
+    linkSignageBtn.addEventListener('click', async function () {
+        const selectedCategoryId = feeFixingCategory.value;
+
+        if (!selectedCategoryId) {
+            alert('Please select a fee-fixing category');
+            return;
+        }
+
+        const payload = {
+            fee_fixing_id: selectedCategoryId,
+        };
+
+        //console.log('Payload:', payload);
+
+        // Disable button while processing
+        linkSignageBtn.textContent = 'Linking...';
+        linkSignageBtn.disabled = true;
+
+        try {
+            const response = await fetch(`/signage/feefixing/${signageId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) throw new Error('Failed to link Signage');
+            const result = await response.json();
+
+            alert(result.message || 'Signage linked successfully.');
+            location.reload(); // Reload the page or redirect as needed
+        } catch (error) {
+            console.error('Error linking signage:', error);
+            alert(`Error linking signage: ${error.message}`);
+        } finally {
+            linkSignageBtn.textContent = 'Link Signage';
+            linkSignageBtn.disabled = false;
+        }
+    });
+
+    // Initialize Fee Fixing Categories
+    fetchFeeFixingCategories();
+});
+</script>

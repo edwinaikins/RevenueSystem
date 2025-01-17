@@ -142,7 +142,8 @@ exports.billAssign =  async (req, res) => {
         // Update bill status to 'Issued'
         const updateQuery = `
             UPDATE bills
-            SET bill_status = 'Issued'
+            SET bill_status = 'Issued',
+                bill_assigned = 'Yes'
             WHERE bill_id IN (?)
         `;
 
@@ -220,9 +221,10 @@ exports.getCollectorBills = async (req, res) => {
             LEFT JOIN bills b ON cba.bill_id = b.bill_id
             LEFT JOIN businesses bu ON b.business_id = bu.business_id
             LEFT JOIN Properties p ON b.property_id = p.property_id
+            LEFT JOIN signage s ON b.signage_id = s.signage_id
             WHERE cba.collector_id = ? AND 
-                (bu.business_name LIKE ? OR p.house_number LIKE ? OR b.entity_type LIKE ?)
-        `, [collectorId, searchQuery, searchQuery, searchQuery]);
+                (bu.business_name LIKE ? OR p.house_number LIKE ? OR s.signage_name LIKE ? OR b.entity_type LIKE ?)
+        `, [collectorId, searchQuery, searchQuery, searchQuery, searchQuery]);
 
         const total = totalBills[0]?.total || 0;
 
@@ -233,6 +235,7 @@ exports.getCollectorBills = async (req, res) => {
                 CASE 
                     WHEN b.entity_type = 'Business' THEN bu.business_name
                     WHEN b.entity_type = 'Property' THEN p.house_number
+                    WHEN b.entity_type = 'Signage' THEN s.signage_name
                     ELSE 'Unknown'
                 END AS Entity_Name,
                 b.entity_type AS Entity_Type,
@@ -243,11 +246,12 @@ exports.getCollectorBills = async (req, res) => {
             LEFT JOIN bills b ON cba.bill_id = b.bill_id
             LEFT JOIN businesses bu ON b.business_id = bu.business_id
             LEFT JOIN Properties p ON b.property_id = p.property_id
-            LEFT JOIN locations l ON bu.location_id = l.location_id OR p.location_id = l.location_id
+            LEFT JOIN signage s ON b.signage_id = s.signage_id
+            LEFT JOIN locations l ON bu.location_id = l.location_id OR p.location_id = l.location_id OR s.location_id = l.location_id
             WHERE cba.collector_id = ? AND 
-                (bu.business_name LIKE ? OR p.house_number LIKE ? OR b.entity_type LIKE ?)
+                (bu.business_name LIKE ? OR p.house_number LIKE ? OR s.signage_name LIKE ? OR b.entity_type LIKE ?)
             LIMIT ? OFFSET ?
-        `, [collectorId, searchQuery, searchQuery, searchQuery, Number(limit), Number(offset)]);
+        `, [collectorId, searchQuery, searchQuery, searchQuery, searchQuery, Number(limit), Number(offset)]);
 
         res.json({
             collector: collector[0],
@@ -326,12 +330,14 @@ exports.getCollectorBusinessSummary = async (req, res) => {
                 clients.client_id,
                 bu.business_name,
                 bu.business_id,
+                entity_type.division,
                 l.location AS Location,
                 b.year,
                 (b.total_amount + IFNULL(b.arrears, 0)) AS Bill_Amount
             FROM collector_bill_assignment cba
             LEFT JOIN bills b ON cba.bill_id = b.bill_id
             LEFT JOIN businesses bu ON b.business_id = bu.business_id
+            LEFT JOIN entity_type ON bu.entity_type_id = entity_type.entity_type_id
             LEFT JOIN locations l ON bu.location_id = l.location_id
             LEFT JOIN clients ON bu.client_id = clients.client_id
             WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
@@ -396,17 +402,90 @@ exports.getCollectorPropertySummary = async (req, res) => {
                 clients.client_id,
                 p.house_number,
                 p.property_id,
+                entity_type.division,
                 l.location AS Location,
                 b.year,
                 (b.total_amount + IFNULL(b.arrears, 0)) AS Bill_Amount
             FROM collector_bill_assignment cba
             LEFT JOIN bills b ON cba.bill_id = b.bill_id
             LEFT JOIN Properties p ON b.property_id = p.property_id
+            LEFT JOIN entity_type ON p.entity_type_id = entity_type.entity_type_id
             LEFT JOIN locations l ON p.location_id = l.location_id
             LEFT JOIN clients ON p.client_id = clients.client_id
             WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
             LIMIT ? OFFSET ?
         `, [collectorId, "Property", year, Number(limit), Number(offset)]);
+
+        res.json({
+            collector: collector[0],
+            bills: assignedBills,
+            pagination: {
+                total,
+                currentPage: Number(page),
+                totalPages: Math.ceil(total / limit),
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching collector details:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+exports.getCollectorSignageSummary = async (req, res) => {
+    const { collectorId, year } = req.params;
+    const { page = 1, limit = 10} = req.query;
+
+    // Validate inputs
+    if (!collectorId || isNaN(Number(collectorId))) {
+        return res.status(400).json({ message: "Invalid collector ID" });
+    }
+
+    const offset = (page - 1) * limit;
+
+    try {
+        // Fetch collector details
+        const [collector] = await db.query(
+            "SELECT * FROM revenue_collector WHERE collector_id = ?",
+            [collectorId]
+        );
+
+        if (!collector.length) {
+            return res.status(404).json({ message: "Collector not found" });
+        }
+
+
+        // Count total bills (for pagination)
+        const [totalBills] = await db.query(`
+            SELECT COUNT(*) AS total FROM collector_bill_assignment cba
+            LEFT JOIN bills b ON cba.bill_id = b.bill_id
+            LEFT JOIN signage s ON b.signage_id = s.signage_id
+            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
+        `, [collectorId, "Signage", year]);
+
+        const total = totalBills[0]?.total || 0;
+
+        // Fetch paginated and filtered bills
+        const [assignedBills] = await db.query(`
+           SELECT 	
+                clients.firstname,
+                clients.lastname,
+                clients.contact,
+                clients.client_id,
+                s.signage_name,
+                s.signage_id,
+                entity_type.division,
+                l.location AS Location,
+                b.year,
+                (b.total_amount + IFNULL(b.arrears, 0)) AS Bill_Amount
+            FROM collector_bill_assignment cba
+            LEFT JOIN bills b ON cba.bill_id = b.bill_id
+            LEFT JOIN signage s ON b.signage_id = s.signage_id
+            LEFT JOIN entity_type ON s.entity_type_id = entity_type.entity_type_id
+            LEFT JOIN locations l ON s.location_id = l.location_id
+            LEFT JOIN clients ON s.client_id = clients.client_id
+            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
+            LIMIT ? OFFSET ?
+        `, [collectorId, "Signage", year, Number(limit), Number(offset)]);
 
         res.json({
             collector: collector[0],

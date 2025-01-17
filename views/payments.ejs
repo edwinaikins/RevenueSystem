@@ -84,6 +84,36 @@
         </div>
       </div>
     </div>
+
+    <!-- Signage Payments Section -->
+    <div id="signagePaymentsContainer" class="mt-4">
+      <div class="card">
+        <div class="card-header">
+          <h3>Signage Payments</h3>
+        </div>
+        <div class="card-body">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Signage ID</th>
+                <th>Signage Name</th>
+                <th>Description</th>
+                <th>Year</th>
+                <th>Bill Amount</th>
+                <th>Arrears</th>
+                <th>Paid</th>
+                <th>Amount Due</th>
+                <th>Due Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="signagePaymentsTable">
+              <!-- Dynamic Content -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </section>
 </div>
 
@@ -176,6 +206,7 @@
   let clientDetails = {};
   let businessPayments = [];
   let propertyPayments = [];
+  let signagePayments = [];
 
   document.getElementById("searchForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -195,10 +226,12 @@
         clientDetails = result.client || {};
         businessPayments = result.businessPayments || [];
         propertyPayments = result.propertyPayments || [];
+        signagePayments = result.signagePayments || [];
 
         renderClientDetails();
         renderBusinessPayments();
         renderPropertyPayments();
+        renderSignagePayments();
       } else {
         alert("Client not found. Please check the Client ID and try again.");
       }
@@ -266,6 +299,27 @@
           <td>${sanitize(payment.formatted_due_date)}</td>
           <td>
             <button class="btn btn-sm btn-primary" onclick="openPaymentModal('${sanitize(clientDetails.client_id)}', '${sanitize(payment.bill_id)}', '${sanitize(payment.entity_type)}', '${sanitize(payment.property_id)}')">Pay</button>
+          </td>
+        </tr>`).join("")
+      : "<tr><td colspan='9'>No property payments available.</td></tr>";
+  }
+
+  function renderSignagePayments() {
+    const table = document.getElementById("signagePaymentsTable");
+    table.innerHTML = signagePayments.length
+      ? signagePayments.map((payment) => `
+        <tr>
+          <td>${sanitize(payment.signage_id)}</td>
+          <td>${sanitize(payment.signage_name)}</td>
+          <td>Property Rate</td>
+          <td>${sanitize(payment.year)}</td>
+          <td>${sanitize(payment.total_amount)}</td>
+          <td>${sanitize(payment.arrears)}</td>
+          <td>${sanitize(payment.total_payments)}</td>
+          <td>${sanitize((Number(payment.total_amount) || 0) + (Number(payment.arrears) || 0) - (Number(payment.total_payments) || 0))}</td>
+          <td>${sanitize(payment.formatted_due_date)}</td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="openPaymentModal('${sanitize(clientDetails.client_id)}', '${sanitize(payment.bill_id)}', '${sanitize(payment.entity_type)}', '${sanitize(payment.signage_id)}')">Pay</button>
           </td>
         </tr>`).join("")
       : "<tr><td colspan='9'>No property payments available.</td></tr>";
