@@ -341,6 +341,7 @@ exports.getCollectorBusinessSummary = async (req, res) => {
             LEFT JOIN locations l ON bu.location_id = l.location_id
             LEFT JOIN clients ON bu.client_id = clients.client_id
             WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
+            ORDER BY l.location
             LIMIT ? OFFSET ?
         `, [collectorId, "Business", year, Number(limit), Number(offset)]);
 
@@ -413,6 +414,7 @@ exports.getCollectorPropertySummary = async (req, res) => {
             LEFT JOIN locations l ON p.location_id = l.location_id
             LEFT JOIN clients ON p.client_id = clients.client_id
             WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
+            ORDER BY l.location
             LIMIT ? OFFSET ?
         `, [collectorId, "Property", year, Number(limit), Number(offset)]);
 
@@ -484,6 +486,7 @@ exports.getCollectorSignageSummary = async (req, res) => {
             LEFT JOIN locations l ON s.location_id = l.location_id
             LEFT JOIN clients ON s.client_id = clients.client_id
             WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
+            ORDER BY l.location
             LIMIT ? OFFSET ?
         `, [collectorId, "Signage", year, Number(limit), Number(offset)]);
 
