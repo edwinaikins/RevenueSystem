@@ -271,9 +271,9 @@ exports.getCollectorBusinessBills = async (req, res) => {
 			WHERE collector_bill_assignment.collector_id = ?
               AND bills1.year = ?
               AND bills1.entity_type = ?
-              AND businessDetails.tagged = ?
+              AND (businessDetails.tagged = 'Yes' AND ? = 'Yes' OR ? = 'No')
         `;
-        const [bill] = await db.query(query, [clientId, year, "Business", tagged]);
+        const [bill] = await db.query(query, [clientId, year, "Business", tagged,tagged]);
 
         if (bill.length === 0) {
             return res.status(404).json({
@@ -354,9 +354,9 @@ exports.getCollectorPropertyBills = async (req, res) => {
                 WHERE collector_bill_assignment.collector_id = ?
                 AND bills1.year = ?
                 AND bills1.entity_type = ?
-                AND propertyDetails.tagged = ?
+                AND (propertyDetails.tagged = 'Yes' AND ? = 'Yes' OR ? = 'No')
         `;
-        const [bill] = await db.query(query, [clientId, year, "Property", tagged]);
+        const [bill] = await db.query(query, [clientId, year, "Property", tagged,tagged]);
 
         if (bill.length === 0) {
             return res.status(404).json({
@@ -436,9 +436,9 @@ exports.getCollectorSignageBills = async (req, res) => {
                 WHERE collector_bill_assignment.collector_id = ?
                 AND bills1.year = ?
                 AND bills1.entity_type = ?
-                AND signageDetails.tagged = ?
+                AND (signageDetails.tagged = 'Yes' AND ? = 'Yes' OR ? = 'No')
         `;
-        const [bill] = await db.query(query, [clientId, year, "Signage", tagged]);
+        const [bill] = await db.query(query, [clientId, year, "Signage", tagged,tagged]);
 
         if (bill.length === 0) {
             return res.status(404).json({
