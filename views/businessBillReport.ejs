@@ -34,6 +34,8 @@
     </section>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
   <script>
     const currentDate = new Date();
 const formattedDate = currentDate.toLocaleDateString('en-US', { 
@@ -85,6 +87,7 @@ async function searchBill() {
                           month: 'long',
                           day: 'numeric'
                         });
+      const qrCodeId = `${billData.business_id}`;
       const billTemplate = `
         <div id="billTemplate-${index}" class="bill-container" style="margin-top: 20px;">
           <div class="card">
@@ -114,7 +117,7 @@ async function searchBill() {
                   <th>Client Name</th>
                   <td>${billData.firstname} ${billData.lastname}</td>
                   <th>Contact</th>
-                  <td>${billData.contact}</td>
+                  <td>0${billData.contact}</td>
                   <th>Client ID</th>
                   <td>${billData.client_id}</td>
                 </tr>
@@ -225,15 +228,31 @@ async function searchBill() {
                 </p>
               </div>
 
+              
               <!-- Print Button -->
               <div class="text-center" style="margin-top: 20px;">
                 <button class="btn btn-success" onclick="printSingleBill(${index})">Print This Bill</button>
+              </div>
+
+              <!-- Footer with QR Code -->
+              <div class="qr-footer" style="text-align: center; margin-top: 30px;">
+                <div id="${qrCodeId}" style="margin: 0 auto;"></div>
               </div>
             </div>
           </div>
         </div>
       `;
       container.innerHTML += billTemplate;
+
+      // Generate QR Code
+      const qrData = `Client ID: ${billData.client_id}, Business ID: ${billData.business_id} Year: ${billData.year}, Amount: ${billData.total_amount}`;
+      const qrCodeElement = document.getElementById(qrCodeId);
+      new QRCode(qrCodeElement, {
+        text: qrData,
+        width: 100,
+        height: 100,
+      });
+   
     });
   } catch (error) {
     console.error("Error fetching bills:", error);
