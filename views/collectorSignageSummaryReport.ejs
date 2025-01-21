@@ -40,10 +40,10 @@
                     <th>Signage Name</th>
                     <th>Signage ID</th>
                     <th>Signage Type</th>
-                    <th>Location</th>
+                    <th>Location(Zone)</th>
                     <th>Year</th>
                     <th>Bill Amount</th>
-                    <th>Date</th>
+                    <th>Date (DD/MM/YYYY)</th>
                     <th>Signature</th>
                 </tr>
             </thead>
@@ -138,7 +138,7 @@
               row.innerHTML = `
                   <td>${bill.firstname} ${bill.lastname}</td>
                   <td>${bill.client_id}</td>
-                  <td>${bill.contact}</td>
+                  <td>0${bill.contact}</td>
                   <td>${bill.signage_name}</td>
                   <td>${bill.signage_id}</td>
                   <td>${bill.division}</td>
