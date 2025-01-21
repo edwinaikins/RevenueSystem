@@ -152,7 +152,10 @@ async function searchBill() {
              <div class="additional-info" style="margin-bottom: 20px;">
                <p>
                  Under Section 142 - 148 of the Local Government Act, 2016, Act 936 and Section 1 & 2 of the Nsawam Adoagyiri Municipal bye-laws, a Business Operating Permit Rate of
-                 <strong>${billData.total_amount} Ghana Cedis</strong> has been made in respect of the year ending <strong>${billData.year}</strong>, Payable on Demand.
+                 <strong>${parseFloat(billData.total_amount).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+})} Ghana Cedis</strong> has been made in respect of the year ending <strong>${billData.year}</strong>, Payable on Demand.
                </p>
              </div>
 
@@ -188,7 +191,10 @@ async function searchBill() {
                  .map(arrear => `
                    <tr style="border: none;">
                      <td style="border: none;">${arrear.arrear_year}</td>
-                     <td style="border: none;">${arrear.arrear_amount}</td>
+                     <td style="border: none;">${parseFloat(arrear.arrear_amount).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+})}</td>
                    </tr>
                  `).join("") : `
                  <tr style="border: none;">
@@ -198,17 +204,29 @@ async function searchBill() {
              </tbody>
            </table>
          </td>
-         <td>${item.amount}</td>
+         <td>${parseFloat(item.amount).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+})}</td>
          <td>
-           ${(parseFloat(item.amount) + parseFloat(billData.arrears)).toFixed(2)}
+           ${(parseFloat(item.amount) + parseFloat(billData.arrears)).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+})}
          </td>
        </tr>`).join("")}
      ${feeItems.map(fee => `
        <tr>
          <td>${fee.description}</td>
          <td>-</td>
-         <td>${fee.amount}</td>
-         <td>${fee.amount}</td>
+         <td>${parseFloat(fee.amount).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+})}</td>
+         <td>${parseFloat(fee.amount).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+})}</td>
        </tr>`).join("")}
    </tbody>
    <tfoot>
@@ -216,7 +234,10 @@ async function searchBill() {
        <td><strong>Total</strong></td>
        <td></td>
        <td></td>
-       <td><strong>${(parseFloat(billData.total_amount) + parseFloat(billData.arrears)).toFixed(2)}</strong></td>
+       <td><strong>${(parseFloat(billData.total_amount) + parseFloat(billData.arrears)).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+})}</strong></td>
      </tr>
    </tfoot>
  </table>

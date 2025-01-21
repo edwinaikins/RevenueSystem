@@ -213,7 +213,10 @@
             <td>${bill.division}</td>
             <td>${bill.Location}</td>
             <td>${bill.year}</td>
-            <td>${bill.Bill_Amount}</td>
+            <td>${parseFloat(bill.Bill_Amount).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+})}</td>
             <td></td>
             <td></td>
         `;
