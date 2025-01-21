@@ -17,6 +17,7 @@
                         <th>Size</th>
                         <th>Type</th>
                         <th>Location</th>
+                        <th>Tagged</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -59,6 +60,10 @@
                         <td>${business.division}</td>
                         <td>${business.location}</td>
                         <td>
+                            <input type="checkbox" ${business.tagged === 'Yes' ? 'checked' : ''} 
+                                   onchange="updateTagStatus('${business.business_id}', this.checked)">
+                        </td>
+                        <td>
                             <a href="/client/clientDetails/${business.client_id}" class="btn btn-sm btn-secondary">View</a>
                         </td>
                     </tr>`).join('')
@@ -84,4 +89,34 @@
     document.addEventListener('DOMContentLoaded', () => {
         fetchBusinesses(); // Initial fetch
     });
+
+    async function updateTagStatus(businessId, isChecked) {
+    const newStatus = isChecked ? 'Yes' : 'No';
+
+    try {
+        const response = await fetch(`/business/updateTag`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ business_id: businessId, tagged: newStatus }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update tag status');
+        }
+
+        const result = await response.json();
+        if (result.success) {
+            alert('Tag status updated successfully');
+        } else {
+            throw new Error(result.message || 'Failed to update tag status');
+        }
+    } catch (error) {
+        alert(error.message);
+        // Optionally, revert the checkbox state if the update fails
+        document.querySelector(`input[data-client-id="${businessId}"]`).checked = !isChecked;
+    }
+}
+
 </script>

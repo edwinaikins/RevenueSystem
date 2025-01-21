@@ -289,7 +289,7 @@ exports.updateDistributionStatus = async (req, res) => {
 }
 
 exports.getCollectorBusinessSummary = async (req, res) => {
-    const { collectorId, year } = req.params;
+    const { collectorId, year, tagged } = req.params;
     const { page = 1, limit = 10} = req.query;
 
     // Validate inputs
@@ -316,8 +316,8 @@ exports.getCollectorBusinessSummary = async (req, res) => {
             SELECT COUNT(*) AS total FROM collector_bill_assignment cba
             LEFT JOIN bills b ON cba.bill_id = b.bill_id
             LEFT JOIN businesses bu ON b.business_id = bu.business_id
-            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
-        `, [collectorId, "Business", year]);
+            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ? AND bu.tagged = ?
+        `, [collectorId, "Business", year, tagged]);
 
         const total = totalBills[0]?.total || 0;
 
@@ -340,10 +340,10 @@ exports.getCollectorBusinessSummary = async (req, res) => {
             LEFT JOIN entity_type ON bu.entity_type_id = entity_type.entity_type_id
             LEFT JOIN locations l ON bu.location_id = l.location_id
             LEFT JOIN clients ON bu.client_id = clients.client_id
-            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
+            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ? AND bu.tagged = ?
             ORDER BY l.location
             LIMIT ? OFFSET ?
-        `, [collectorId, "Business", year, Number(limit), Number(offset)]);
+        `, [collectorId, "Business", year, tagged, Number(limit), Number(offset)]);
 
         res.json({
             collector: collector[0],
@@ -362,7 +362,7 @@ exports.getCollectorBusinessSummary = async (req, res) => {
 
 
 exports.getCollectorPropertySummary = async (req, res) => {
-    const { collectorId, year } = req.params;
+    const { collectorId, year, tagged } = req.params;
     const { page = 1, limit = 10} = req.query;
 
     // Validate inputs
@@ -389,8 +389,8 @@ exports.getCollectorPropertySummary = async (req, res) => {
             SELECT COUNT(*) AS total FROM collector_bill_assignment cba
             LEFT JOIN bills b ON cba.bill_id = b.bill_id
             LEFT JOIN Properties p ON b.property_id = p.property_id
-            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
-        `, [collectorId, "Property", year]);
+            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ? AND p.tagged = ?
+        `, [collectorId, "Property", year, tagged]);
 
         const total = totalBills[0]?.total || 0;
 
@@ -413,10 +413,10 @@ exports.getCollectorPropertySummary = async (req, res) => {
             LEFT JOIN entity_type ON p.entity_type_id = entity_type.entity_type_id
             LEFT JOIN locations l ON p.location_id = l.location_id
             LEFT JOIN clients ON p.client_id = clients.client_id
-            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
+            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ? AND p.tagged = ?
             ORDER BY l.location
             LIMIT ? OFFSET ?
-        `, [collectorId, "Property", year, Number(limit), Number(offset)]);
+        `, [collectorId, "Property", year, tagged, Number(limit), Number(offset)]);
 
         res.json({
             collector: collector[0],
@@ -434,7 +434,7 @@ exports.getCollectorPropertySummary = async (req, res) => {
 };
 
 exports.getCollectorSignageSummary = async (req, res) => {
-    const { collectorId, year } = req.params;
+    const { collectorId, year, tagged } = req.params;
     const { page = 1, limit = 10} = req.query;
 
     // Validate inputs
@@ -461,8 +461,8 @@ exports.getCollectorSignageSummary = async (req, res) => {
             SELECT COUNT(*) AS total FROM collector_bill_assignment cba
             LEFT JOIN bills b ON cba.bill_id = b.bill_id
             LEFT JOIN signage s ON b.signage_id = s.signage_id
-            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
-        `, [collectorId, "Signage", year]);
+            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ? AND s.tagged = ?
+        `, [collectorId, "Signage", year, tagged]);
 
         const total = totalBills[0]?.total || 0;
 
@@ -485,10 +485,10 @@ exports.getCollectorSignageSummary = async (req, res) => {
             LEFT JOIN entity_type ON s.entity_type_id = entity_type.entity_type_id
             LEFT JOIN locations l ON s.location_id = l.location_id
             LEFT JOIN clients ON s.client_id = clients.client_id
-            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ?
+            WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ? AND s.tagged = ?
             ORDER BY l.location
             LIMIT ? OFFSET ?
-        `, [collectorId, "Signage", year, Number(limit), Number(offset)]);
+        `, [collectorId, "Signage", year, tagged, Number(limit), Number(offset)]);
 
         res.json({
             collector: collector[0],

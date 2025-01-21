@@ -19,6 +19,10 @@
                 <label for="year">Year</label>
                 <input type="text" id="year" class="form-control" placeholder="Enter Year">
               </div>
+              <div class="col-md-3">
+                <label for="tagged">Tagged</label><br>
+                <input type="checkbox" id="tagged">
+            </div>
               <div class="col-md-4 text-right">
                 <button type="button" class="btn btn-primary mt-4" onclick="searchBill()">Search</button>
                 <button type="button" class="btn btn-secondary mt-4" onclick="printTable()">Print</button>
@@ -102,13 +106,14 @@
       async function searchBill() {
           const collectorId = document.getElementById('collectorId').value;
           const year = document.getElementById('year').value;
+          const tagged = document.getElementById('tagged').checked ? 'Yes' : 'No';
 
           if (!collectorId || !year) {
               alert('Please provide both Collector ID and Year');
               return;
           }
 
-          const response = await fetch(`/collector/getCollectorSignageSummary/${collectorId}/${year}?page=${currentPage}&limit=${limit}`);
+          const response = await fetch(`/collector/getCollectorSignageSummary/${collectorId}/${year}/${tagged}?page=${currentPage}&limit=${limit}`);
           const data = await response.json();
 
           if (!response.ok) {
@@ -165,11 +170,11 @@
           document.getElementById('pagination').style.display = totalPages > 1 ? 'block' : 'none';
       }
 
-      async function fetchAllPages(collectorId, year) {
+      async function fetchAllPages(collectorId, year, tagged) {
           let allBills = [];
 
           for (let page = 1; page <= totalPages; page++) {
-              const response = await fetch(`/collector/getCollectorSignageSummary/${collectorId}/${year}?page=${page}&limit=${limit}`);
+              const response = await fetch(`/collector/getCollectorSignageSummary/${collectorId}/${year}/${tagged}?page=${page}&limit=${limit}`);
               const data = await response.json();
               if (response.ok) {
                   allBills = allBills.concat(data.bills);
@@ -182,6 +187,7 @@
       async function printTable() {
     const collectorId = document.getElementById('collectorId').value;
     const year = document.getElementById('year').value;
+    const tagged = document.getElementById('tagged').checked ? 'Yes' : 'No';
 
     if (!collectorId || !year) {
         alert('Please provide both Collector ID and Year');
@@ -189,7 +195,7 @@
     }
 
     // Fetch the first page to get collector details
-    const firstPageResponse = await fetch(`/collector/getCollectorSignageSummary/${collectorId}/${year}?page=1&limit=${limit}`);
+    const firstPageResponse = await fetch(`/collector/getCollectorSignageSummary/${collectorId}/${year}/${tagged}?page=1&limit=${limit}`);
     const firstPageData = await firstPageResponse.json();
 
     if (!firstPageResponse.ok) {
@@ -198,7 +204,7 @@
     }
 
     const collector = firstPageData.collector; // Extract collector details
-    const allBills = await fetchAllPages(collectorId, year); // Fetch all pages for bills
+    const allBills = await fetchAllPages(collectorId, year, tagged); // Fetch all pages for bills
 
     // Populate all bills into the table for printing
     const table = document.getElementById('billsTable');

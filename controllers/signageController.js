@@ -238,3 +238,23 @@ exports.showSignage = async (req, res) => {
         console.error("Error",error)
     }
     }
+
+    exports.updateTag =  async (req, res) => {
+        const { signage_id, tagged } = req.body;
+    
+        if (!signage_id || !tagged) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
+    
+        try {
+            // Example query: Update the "tagged" column for the specified client ID
+            await db.query(
+                'UPDATE signage SET tagged = ? WHERE signage_id = ?',
+                [tagged, signage_id]
+            );
+            res.json({ success: true, message: 'Tag status updated successfully' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Database update failed' });
+        }
+    };

@@ -14,6 +14,7 @@
                         <th>Digital Address</th>
                         <th>Location</th>
                         <th>Signage Type</th>
+                        <th>Tagged</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -52,6 +53,10 @@
                         <td>${signage.location}</td>
                         <td>${signage.division}</td>
                         <td>
+                            <input type="checkbox" ${signage.tagged === 'Yes' ? 'checked' : ''} 
+                                   onchange="updateTagStatus('${signage.signage_id}', this.checked)">
+                        </td>
+                        <td>
                             <a href="/client/clientDetails/${signage.client_id}" class="btn btn-sm btn-secondary">View</a>
                         </td>
                     </tr>`).join('')
@@ -77,4 +82,33 @@
     document.addEventListener('DOMContentLoaded', () => {
         fetchSignages(); // Initial fetch
     });
+
+    async function updateTagStatus(signageId, isChecked) {
+    const newStatus = isChecked ? 'Yes' : 'No';
+
+    try {
+        const response = await fetch(`/signage/updateTag`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ signage_id: signageId, tagged: newStatus }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update tag status');
+        }
+
+        const result = await response.json();
+        if (result.success) {
+            alert('Tag status updated successfully');
+        } else {
+            throw new Error(result.message || 'Failed to update tag status');
+        }
+    } catch (error) {
+        alert(error.message);
+        // Optionally, revert the checkbox state if the update fails
+        document.querySelector(`input[data-client-id="${signageId}"]`).checked = !isChecked;
+    }
+}
 </script>

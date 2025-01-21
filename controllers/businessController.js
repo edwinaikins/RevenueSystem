@@ -301,3 +301,24 @@ exports.showBusinesses = async (req, res) => {
         console.error("Error",error)
     }
     }
+
+    exports.updateTag =  async (req, res) => {
+        const { business_id, tagged } = req.body;
+    
+        if (!business_id || !tagged) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
+    
+        try {
+            // Example query: Update the "tagged" column for the specified client ID
+            await db.query(
+                'UPDATE businesses SET tagged = ? WHERE business_id = ?',
+                [tagged, business_id]
+            );
+            res.json({ success: true, message: 'Tag status updated successfully' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Database update failed' });
+        }
+    };
+    

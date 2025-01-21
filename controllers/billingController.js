@@ -242,7 +242,7 @@ exports.getSignageBill = async (req, res) => {
 
 
 exports.getCollectorBusinessBills = async (req, res) => {
-    const { clientId, year } = req.query;
+    const { clientId, year, tagged } = req.query;
 
     try {
         // Fetch main bill data
@@ -271,8 +271,9 @@ exports.getCollectorBusinessBills = async (req, res) => {
 			WHERE collector_bill_assignment.collector_id = ?
               AND bills1.year = ?
               AND bills1.entity_type = ?
+              AND businessDetails.tagged = ?
         `;
-        const [bill] = await db.query(query, [clientId, year, "Business"]);
+        const [bill] = await db.query(query, [clientId, year, "Business", tagged]);
 
         if (bill.length === 0) {
             return res.status(404).json({
@@ -323,7 +324,7 @@ exports.getCollectorBusinessBills = async (req, res) => {
 
 
 exports.getCollectorPropertyBills = async (req, res) => {
-    const { clientId, year } = req.query;
+    const { clientId, year, tagged } = req.query;
 
     try {
         // Fetch main bill data
@@ -352,9 +353,10 @@ exports.getCollectorPropertyBills = async (req, res) => {
                 LEFT JOIN entity_type ON propertyDetails.entity_type_id = entity_type.entity_type_id
                 WHERE collector_bill_assignment.collector_id = ?
                 AND bills1.year = ?
-                AND bills1.entity_type = ?;
+                AND bills1.entity_type = ?
+                AND propertyDetails.tagged = ?
         `;
-        const [bill] = await db.query(query, [clientId, year, "Property"]);
+        const [bill] = await db.query(query, [clientId, year, "Property", tagged]);
 
         if (bill.length === 0) {
             return res.status(404).json({
@@ -404,7 +406,7 @@ exports.getCollectorPropertyBills = async (req, res) => {
 };
 
 exports.getCollectorSignageBills = async (req, res) => {
-    const { clientId, year } = req.query;
+    const { clientId, year, tagged } = req.query;
 
     try {
         // Fetch main bill data
@@ -433,9 +435,10 @@ exports.getCollectorSignageBills = async (req, res) => {
                 LEFT JOIN entity_type ON signageDetails.entity_type_id = entity_type.entity_type_id
                 WHERE collector_bill_assignment.collector_id = ?
                 AND bills1.year = ?
-                AND bills1.entity_type = ?;
+                AND bills1.entity_type = ?
+                AND signageDetails.tagged = ?
         `;
-        const [bill] = await db.query(query, [clientId, year, "Signage"]);
+        const [bill] = await db.query(query, [clientId, year, "Signage", tagged]);
 
         if (bill.length === 0) {
             return res.status(404).json({

@@ -14,5 +14,6 @@ router.get("/feefixing/:id",ensureAuthenticated, propertyController.getFeeFixing
 router.get("/feefixingWithPropertyType/:id",ensureAuthenticated, propertyController.getFeeFixingWithPropertyType); 
 router.get("/propertyFee/:client_id/:property_id",ensureAuthenticated, propertyController.getPropertyWithFeeFixing); //show Feefixing Page
 router.put("/feefixing/:id",ensureAuthenticated, propertyController.feeFixing);
+router.post("/updateTag",ensureAuthenticated, propertyController.updateTag);
 
 module.exports = router;

@@ -238,3 +238,23 @@ exports.showProperties = async (req, res) => {
         console.error("Error",error)
     }
     }
+
+    exports.updateTag =  async (req, res) => {
+        const { property_id, tagged } = req.body;
+    
+        if (!property_id || !tagged) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
+    
+        try {
+            // Example query: Update the "tagged" column for the specified client ID
+            await db.query(
+                'UPDATE Properties SET tagged = ? WHERE property_id = ?',
+                [tagged, property_id]
+            );
+            res.json({ success: true, message: 'Tag status updated successfully' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Database update failed' });
+        }
+    };
