@@ -580,10 +580,11 @@ exports.createBill = async (req, res) => {
 
         if (existingBill.length > 0) {
             const oldBillId = existingBill[0].bill_id;
+            await connection.query(`DELETE FROM collector_bill_assignment WHERE bill_id = ?`, [oldBillId])
+            await connection.query(`DELETE FROM sms WHERE bill_id = ?`, [oldBillId])
             await connection.query(`DELETE FROM fees WHERE bill_id = ?`, [oldBillId]);
             await connection.query(`DELETE FROM bill_items WHERE bill_id = ?`, [oldBillId]);
-            await connection.query(`DELETE FROM bills WHERE bill_id = ?`, [oldBillId]);
-            await connection.query(`DELETE FROM sms WHERE bill_id = ?`, [oldBillId])
+            await connection.query(`DELETE FROM bills WHERE bill_id = ?`, [oldBillId]);   
         }
 
         // 4. Create Bill
