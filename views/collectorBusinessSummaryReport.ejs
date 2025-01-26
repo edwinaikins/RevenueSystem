@@ -149,7 +149,7 @@
           data.bills.forEach(bill => {
               const row = document.createElement('tr');
               row.innerHTML = `
-                  <td>${bill.firstname} ${bill.lastname}</td>
+                  <td>${bill.firstname}</td>
                   <td>${bill.client_id}</td>
                   <td>0${bill.contact}</td>
                   <td>${bill.business_name}</td>
@@ -220,7 +220,7 @@
     allBills.forEach(bill => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${bill.firstname} ${bill.lastname}</td>
+            <td>${bill.firstname}</td>
             <td>${bill.client_id}</td>
             <td>${bill.contact}</td>
             <td>${bill.business_name}</td>
