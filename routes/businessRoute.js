@@ -14,6 +14,7 @@ router.get("/feefixing/:id",ensureAuthenticated, businessController.getFeeFixing
 router.get("/feefixingWithBusinessType/:id",ensureAuthenticated, businessController.getFeeFixingWithBusinessType); 
 router.get("/businessFee/:client_id/:business_id",ensureAuthenticated, businessController.getBusinessWithFeeFixing); //show Feefixing Page
 router.post("/updateTag",ensureAuthenticated, businessController.updateTag);
+router.post("/resetTag",ensureAuthenticated, businessController.resetTag);
 
 
 module.exports = router;

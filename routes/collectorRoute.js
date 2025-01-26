@@ -15,7 +15,7 @@ router.post("/billReassign",ensureAuthenticated, collectorController.reassignBil
 router.get("/collectorBills",ensureAuthenticated, collectorController.showPageCollectorBills);
 router.get("/getCollectorBills/:collectorId",ensureAuthenticated, collectorController.getCollectorBills);
 router.put("/updateDistributionStatus",ensureAuthenticated, collectorController.updateDistributionStatus);
-router.get("/getCollectorBusinessSummary/:collectorId/:year/:tagged",ensureAuthenticated, collectorController.getCollectorBusinessSummary);
+router.get("/getCollectorBusinessSummary/:collectorId/:year/:tagged/:filterOption",ensureAuthenticated, collectorController.getCollectorBusinessSummary);
 router.get("/getCollectorPropertySummary/:collectorId/:year/:tagged",ensureAuthenticated, collectorController.getCollectorPropertySummary);
 router.get("/getCollectorSignageSummary/:collectorId/:year/:tagged",ensureAuthenticated, collectorController.getCollectorSignageSummary);
 //router.get("/searchCollector", collectorController.searchCollectors);

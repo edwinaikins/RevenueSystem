@@ -3,6 +3,7 @@
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <input type="text" id="searchBar" class="form-control mb-4 w-75" placeholder="Search signages...">
+            <button id="resetTagButton" class="btn btn-warning btn-sm ml-2">Reset Tags</button>
         </div>
         <div class="card-body p-0">
             <table class="table table-striped table-responsive">
@@ -111,4 +112,29 @@
         document.querySelector(`input[data-client-id="${signageId}"]`).checked = !isChecked;
     }
 }
+
+document.getElementById('resetTagButton').addEventListener('click', async () => {
+    if (confirm('Are you sure you want to reset all tags?')) {
+        try {
+            const response = await fetch('/signage/resetTag', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) throw new Error('Failed to reset tags');
+            const result = await response.json();
+
+            if (result.success) {
+                alert('All tags have been reset successfully.');
+                fetchSignages(currentPage); // Reload signages to update UI
+            } else {
+                throw new Error(result.message || 'Failed to reset tags');
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+});
 </script>

@@ -14,5 +14,6 @@ router.get("/feefixingWithSignageType/:id",ensureAuthenticated, signageControlle
 router.get("/signageFee/:client_id/:signage_id",ensureAuthenticated, signageController.getSignageWithFeeFixing); //show Feefixing Page
 router.put("/feefixing/:id",ensureAuthenticated, signageController.feeFixing);
 router.post("/updateTag",ensureAuthenticated, signageController.updateTag);
+router.post("/resetTag",ensureAuthenticated, signageController.resetTag);
 
 module.exports = router;

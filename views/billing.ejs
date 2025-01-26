@@ -100,8 +100,12 @@
 
   document.getElementById("searchForm").addEventListener("submit", async (e) => {
     e.preventDefault();
+    const searchButton = e.target.querySelector("button[type='submit']");
     const clientId = document.getElementById("searchValue").value;
     
+    searchButton.disabled = true;
+    searchButton.innerText = "Searching..."; // Optional: Change button text for better UX
+
     try {
       const response = await fetch(`/billing/getClientBillData?client_id=${clientId}`);
       const result = await response.json();
@@ -125,6 +129,10 @@
     } catch (error) {
       console.error("Error fetching client data:", error);
       alert("An error occurred while fetching client data.");
+    } finally {
+        // Re-enable the button
+        searchButton.disabled = false;
+        searchButton.innerText = "Search"; // Reset button text
     }
   });
 
@@ -330,6 +338,14 @@
 
 // Updated saveEntityBill function
 window.saveEntityBill = async function (entityId, entityType, replace = false) {
+  const saveButton = document.querySelector(
+        `#businessCardsContainer button[onclick="saveEntityBill('${entityId}', '${entityType}')"]`
+    );
+    if (saveButton) {
+        saveButton.disabled = true; // Disable the button
+        saveButton.innerText = "Saving..."; // Optional: Update button text
+    }
+  try{
   // Combine businesses and properties to find the entity
   const entity = [...businesses, ...properties, ...signages].find((e) => e.entity_id === entityId);
 
@@ -367,7 +383,6 @@ window.saveEntityBill = async function (entityId, entityType, replace = false) {
     replace
   };
   // Send the payload to backend API
-  try {
     const response = await fetch("/billing/createBill", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -397,7 +412,12 @@ window.saveEntityBill = async function (entityId, entityType, replace = false) {
   } catch (error) {
     console.error("Error saving bill:", error);
     alert("An unexpected error occurred while saving the bill.");
-  }
+  } finally {
+        if (saveButton) {
+            saveButton.disabled = false; // Re-enable the button
+            saveButton.innerText = "Save Bill"; // Reset button text
+        }
+    }
 };
 
 

@@ -23,6 +23,14 @@
                 <label for="tagged">Tagged</label><br>
                 <input type="checkbox" id="tagged">
             </div>
+            <div class="col-md-4">
+                <label for="filterOption">Filter By</label>
+                <select id="filterOption" class="form-control">
+                  <option value=business_id>Select Filter</option>
+                  <option value=l.location>Location</option>
+                  <option value=entity_type.division>Entity Type</option>
+                </select>
+              </div>
               <div class="col-md-4 text-right">
                 <button type="button" class="btn btn-primary mt-4" onclick="searchBill()">Search</button>
                 <button type="button" class="btn btn-secondary mt-4" onclick="printTable()">Print</button>
@@ -107,13 +115,13 @@
           const collectorId = document.getElementById('collectorId').value;
           const year = document.getElementById('year').value;
           const tagged = document.getElementById('tagged').checked ? 'Yes' : 'No';
-
+          const filterOption = document.getElementById('filterOption').value;
           if (!collectorId || !year) {
               alert('Please provide both Collector ID and Year');
               return;
           }
 
-          const response = await fetch(`/collector/getCollectorBusinessSummary/${collectorId}/${year}/${tagged}?page=${currentPage}&limit=${limit}`);
+          const response = await fetch(`/collector/getCollectorBusinessSummary/${collectorId}/${year}/${tagged}/${filterOption}?page=${currentPage}&limit=${limit}`);
           const data = await response.json();
 
           if (!response.ok) {
@@ -167,11 +175,11 @@
           document.getElementById('pagination').style.display = totalPages > 1 ? 'block' : 'none';
       }
 
-      async function fetchAllPages(collectorId, year, tagged) {
+      async function fetchAllPages(collectorId, year, tagged, filterOption) {
           let allBills = [];
 
           for (let page = 1; page <= totalPages; page++) {
-              const response = await fetch(`/collector/getCollectorBusinessSummary/${collectorId}/${year}/${tagged}?page=${page}&limit=${limit}`);
+              const response = await fetch(`/collector/getCollectorBusinessSummary/${collectorId}/${year}/${tagged}/${filterOption}?page=${page}&limit=${limit}`);
               const data = await response.json();
               if (response.ok) {
                   allBills = allBills.concat(data.bills);
@@ -185,6 +193,7 @@
     const collectorId = document.getElementById('collectorId').value;
     const year = document.getElementById('year').value;
     const tagged = document.getElementById('tagged').checked ? 'Yes' : 'No';
+    const filterOption = document.getElementById('filterOption').value;
 
     if (!collectorId || !year) {
         alert('Please provide both Collector ID and Year');
@@ -192,7 +201,7 @@
     }
 
     // Fetch the first page to get collector details
-    const firstPageResponse = await fetch(`/collector/getCollectorBusinessSummary/${collectorId}/${year}/${tagged}?page=1&limit=${limit}`);
+    const firstPageResponse = await fetch(`/collector/getCollectorBusinessSummary/${collectorId}/${year}/${tagged}/${filterOption}?page=1&limit=${limit}`);
     const firstPageData = await firstPageResponse.json();
 
     if (!firstPageResponse.ok) {
@@ -201,7 +210,7 @@
     }
 
     const collector = firstPageData.collector; // Extract collector details
-    const allBills = await fetchAllPages(collectorId, year,tagged); // Fetch all pages for bills
+    const allBills = await fetchAllPages(collectorId, year,tagged, filterOption); // Fetch all pages for bills
 
     // Populate all bills into the table for printing
     const table = document.getElementById('billsTable');

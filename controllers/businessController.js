@@ -322,3 +322,16 @@ exports.showBusinesses = async (req, res) => {
         }
     };
     
+    exports.resetTag =  async (req, res) => {
+    
+        try {
+            await db.query(
+                'UPDATE businesses SET tagged = "No" WHERE tagged = "Yes"',
+            );
+            res.json({ success: true, message: 'Tag status updated successfully' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Database update failed' });
+        }
+    };
+    

@@ -289,7 +289,8 @@ exports.updateDistributionStatus = async (req, res) => {
 }
 
 exports.getCollectorBusinessSummary = async (req, res) => {
-    const { collectorId, year, tagged } = req.params;
+    const { collectorId, year, tagged, filterOption } = req.params;
+    console.log(req.params)
     const { page = 1, limit = 10} = req.query;
 
     // Validate inputs
@@ -341,7 +342,7 @@ exports.getCollectorBusinessSummary = async (req, res) => {
             LEFT JOIN locations l ON bu.location_id = l.location_id
             LEFT JOIN clients ON bu.client_id = clients.client_id
             WHERE cba.collector_id = ? AND b.entity_type = ? AND b.year = ? AND (bu.tagged = 'Yes' AND ? = 'Yes' OR ? = 'No')
-            ORDER BY l.location
+            ORDER BY ${filterOption}
             LIMIT ? OFFSET ?
         `, [collectorId, "Business", year, tagged, tagged, Number(limit), Number(offset)]);
 
