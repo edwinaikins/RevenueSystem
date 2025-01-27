@@ -234,6 +234,26 @@
     document.getElementById('batchAssignButton').addEventListener('click', handleBatchAssign);
     document.getElementById('confirmReassignButton').addEventListener('click', handleReassign);
 });
+document.getElementById('selectAllCheckbox').addEventListener('change', function () {
+    const isChecked = this.checked; // Get the state of "Select All"
+    const checkboxes = document.querySelectorAll('.billCheckbox:not(:disabled)'); // Get all individual checkboxes that are not disabled
+
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = isChecked; // Set each checkbox state to match "Select All"
+    });
+});
+
+// Optionally, you can sync the "Select All" checkbox state if individual checkboxes are changed
+document.addEventListener('change', function (event) {
+    if (event.target.classList.contains('billCheckbox')) {
+        const allCheckboxes = document.querySelectorAll('.billCheckbox:not(:disabled)');
+        const checkedCheckboxes = document.querySelectorAll('.billCheckbox:checked:not(:disabled)');
+
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        selectAllCheckbox.checked = allCheckboxes.length === checkedCheckboxes.length; // Set "Select All" based on individual checkbox states
+        selectAllCheckbox.indeterminate = checkedCheckboxes.length > 0 && checkedCheckboxes.length < allCheckboxes.length; // Indeterminate state
+    }
+});
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
