@@ -264,13 +264,20 @@ async function searchBill() {
       container.innerHTML += billTemplate;
 
       // Generate QR Code
-      const qrData = `Client ID: ${billData.client_id}, Business ID: ${billData.signage_id} Year: ${billData.year}, Amount: ${billData.total_amount}`;
-      const qrCodeElement = document.getElementById(qrCodeId);
-      new QRCode(qrCodeElement, {
-        text: qrData,
-        width: 100,
-        height: 100,
-      });
+     setTimeout(() => {
+        const qrCodeElement = document.getElementById(qrCodeId);
+        if (qrCodeElement) {
+          const qrData = `Client ID: ${billData.client_id}, Business ID: ${billData.signage_id} Year: ${billData.year}, Amount: ${billData.total_amount}`;
+          console.log("Generating QR Code for:", qrData);
+          new QRCode(qrCodeElement, {
+            text: qrData,
+            width: 100,
+            height: 100,
+          })
+        }else {
+        console.error(`QR Code element with ID ${qrCodeId} not found.`);
+      }
+      }, 0);
     });
   } catch (error) {
     console.error("Error fetching bills:", error);

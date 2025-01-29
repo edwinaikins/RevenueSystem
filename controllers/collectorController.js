@@ -291,7 +291,7 @@ exports.updateDistributionStatus = async (req, res) => {
 exports.getCollectorBusinessSummary = async (req, res) => {
     const { collectorId, year, tagged, filterOption } = req.params;
     console.log(req.params)
-    const { page = 1, limit = 10} = req.query;
+    const { page = 1, limit = 1000} = req.query;
 
     // Validate inputs
     if (!collectorId || isNaN(Number(collectorId))) {
@@ -364,7 +364,7 @@ exports.getCollectorBusinessSummary = async (req, res) => {
 
 exports.getCollectorPropertySummary = async (req, res) => {
     const { collectorId, year, tagged } = req.params;
-    const { page = 1, limit = 10} = req.query;
+    const { page = 1, limit = 1000} = req.query;
 
     // Validate inputs
     if (!collectorId || isNaN(Number(collectorId))) {
@@ -436,7 +436,7 @@ exports.getCollectorPropertySummary = async (req, res) => {
 
 exports.getCollectorSignageSummary = async (req, res) => {
     const { collectorId, year, tagged } = req.params;
-    const { page = 1, limit = 10} = req.query;
+    const { page = 1, limit = 1000} = req.query;
 
     // Validate inputs
     if (!collectorId || isNaN(Number(collectorId))) {

@@ -367,12 +367,15 @@
         fetch(`/dashboard/getKPIS?year=${year}`)
           .then(response => response.json())
           .then(data => {
-            const totalRevenue = parseFloat(data.total_revenue) || 0;
+            const totalRevenue = parseFloat(data.total_revenue).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+}) || 0;
             const totalCollected = parseFloat(data.total_collected) || 0;
             const totalOutstanding = parseFloat(data.total_outstanding) || 0;
 
             document.getElementById('total-bills').innerText = data.total_bills || 0;
-            document.getElementById('total-revenue').innerText = totalRevenue.toFixed(2);
+            document.getElementById('total-revenue').innerText = totalRevenue;
             document.getElementById('total-collected').innerText = totalCollected.toFixed(2);
             document.getElementById('total-outstanding').innerText = totalOutstanding.toFixed(2);
           })
@@ -522,7 +525,10 @@
                 <tr>
                   <td>${row.collector_name}</td>
                   <td>${row.bills_assigned}</td>
-                  <td>${parseFloat(row.total_bill_value || 0).toFixed(2)}</td>
+                  <td>${parseFloat(row.total_bill_value || 0).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+})}</td>
                   <td>${row.bills_served}</td>
                   <td>${row.bills_collected}</td>
                 </tr>
