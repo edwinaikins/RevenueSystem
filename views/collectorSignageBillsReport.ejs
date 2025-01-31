@@ -20,6 +20,10 @@
                   <label for="year">Year</label>
                   <input type="text" id="year" class="form-control" placeholder="Enter Year">
                 </div>
+                <div class="col-md-3">
+                  <label for="tagged">Tagged</label><br>
+                  <input type="checkbox" id="tagged">
+              </div>
                 <div class="col-md-4 text-right">
                   <button type="button" class="btn btn-primary mt-4" onclick="searchBill()">Search</button>
                 </div>
@@ -52,6 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function searchBill() {
   const collectorId = document.getElementById("collectorId").value.trim();
   const year = document.getElementById("year").value.trim();
+  const tagged = document.getElementById('tagged').checked ? 'Yes' : 'No';
 
   if (!collectorId || !year) {
     alert("Please provide both Collector ID and Year.");
@@ -60,7 +65,7 @@ async function searchBill() {
 
   try {
     // Fetch data from the API
-    const response = await fetch(`/billing/getCollectorSignageBills?clientId=${collectorId}&year=${year}`);
+    const response = await fetch(`/billing/getCollectorSignageBills?clientId=${collectorId}&year=${year}&tagged=${tagged}`);
     const data = await response.json();
 
     if (!data.success || !data.bill.length) {
