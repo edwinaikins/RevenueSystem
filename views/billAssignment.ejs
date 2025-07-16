@@ -17,6 +17,21 @@
             <button class="btn btn-primary" id="batchAssignButton">Assign Selected Bills</button>
         </div>
     </div>
+    <!-- 🔸 NEW: Batch Reassignment Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Batch Reassign Bills</h5>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label for="batchReassignCollectorSelect">Select New Collector</label>
+                <select class="form-control" id="batchReassignCollectorSelect" required>
+                    <option value="">Select Collector</option>
+                </select>
+            </div>
+            <button class="btn btn-warning" id="batchReassignButton">Reassign Selected Bills</button>
+        </div>
+    </div>
 
     <!-- All Bills Table -->
     <div class="card mb-4">
@@ -110,7 +125,7 @@
 
     async function populateCollectorDropdown() {
         const collectors = await fetchCollectors();
-        const dropdowns = [document.getElementById('batchCollectorSelect'), document.getElementById('reassignCollectorSelect')];
+        const dropdowns = [document.getElementById('batchCollectorSelect'), document.getElementById('reassignCollectorSelect'), document.getElementById('batchReassignCollectorSelect')];
 
         dropdowns.forEach(dropdown => {
             dropdown.innerHTML = '<option value="">Select Collector</option>';
@@ -138,7 +153,7 @@
             const row = `
                 <tr>
                     <td>
-                        <input type="checkbox" class="billCheckbox" value="${bill.Bill_ID}" ${isAssigned ? 'disabled' : ''}>
+                        <input type="checkbox" class="billCheckbox" value="${bill.Bill_ID}" >
                     </td>
                     <td>${bill.Bill_ID}</td>
                     <td>${bill.Entity_Name}</td>
@@ -226,6 +241,37 @@
         }
     }
 
+    //🔸 NEW: Batch Reassign Handler
+    async function handleBatchReassign() {
+        const selectedCollector = document.getElementById('batchReassignCollectorSelect').value;
+        if (!selectedCollector) {
+            alert('Please select a collector for reassignment.');
+            return;
+        }
+
+        const selectedBills = [...document.querySelectorAll('.billCheckbox:checked')].map(cb => cb.value);
+        if (selectedBills.length === 0) {
+            alert('Please select at least one bill to reassign.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/collector/batchBillReassign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ collectorId: selectedCollector, billIds: selectedBills })
+            });
+
+            if (!response.ok) throw new Error('Failed to reassign bills');
+            alert('Bills successfully reassigned.');
+            const currentFilter = document.getElementById('filterStatus').value;
+            populateAllBillsTable(currentFilter);
+        } catch (error) {
+            console.error('Error in batch reassignment:', error);
+            alert('Failed to reassign bills. Please try again.');
+        }
+    }
+
     // Initialize the page with default filter
     document.addEventListener('DOMContentLoaded', function () {
     populateCollectorDropdown();
@@ -233,6 +279,8 @@
     document.getElementById('filterStatus').value = 'No'; // Set default filter selection in the dropdown
     document.getElementById('batchAssignButton').addEventListener('click', handleBatchAssign);
     document.getElementById('confirmReassignButton').addEventListener('click', handleReassign);
+    document.getElementById('batchReassignButton').addEventListener('click', handleBatchReassign);
+
 });
 document.getElementById('selectAllCheckbox').addEventListener('change', function () {
     const isChecked = this.checked; // Get the state of "Select All"

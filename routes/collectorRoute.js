@@ -12,6 +12,7 @@ router.get("/getCollector",ensureAuthenticated, collectorController.getCollector
 router.get("/billAssignment",ensureAuthenticated, collectorController.showPageBillAssignment);
 router.post("/billAssign",ensureAuthenticated, collectorController.billAssign);
 router.post("/billReassign",ensureAuthenticated, collectorController.reassignBill);
+router.post("/batchBillReassign",ensureAuthenticated, collectorController.reassignBillsBatch);
 router.get("/collectorBills",ensureAuthenticated, collectorController.showPageCollectorBills);
 router.get("/getCollectorBills/:collectorId",ensureAuthenticated, collectorController.getCollectorBills);
 router.put("/updateDistributionStatus",ensureAuthenticated, collectorController.updateDistributionStatus);

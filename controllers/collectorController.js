@@ -190,6 +190,33 @@ exports.reassignBill = async (req, res) => {
     }
 }
 
+exports.reassignBillsBatch = async (req, res) => {
+    const { billIds, collectorId } = req.body;
+
+    if (!Array.isArray(billIds) || billIds.length === 0 || !collectorId) {
+        return res.status(400).send('Invalid input. Provide collectorId and at least one billId.');
+    }
+
+    try {
+        const placeholders = billIds.map(() => '?').join(',');
+        const values = [collectorId, ...billIds];
+
+        const [result] = await db.query(
+            `
+            UPDATE collector_bill_assignment
+            SET collector_id = ?
+            WHERE bill_id IN (${placeholders})
+            `,
+            values
+        );
+
+        res.send({ message: `Reassigned ${result.affectedRows} bill(s)` });
+    } catch (error) {
+        console.error('Error in batch reassignment:', error);
+        res.status(500).send('Batch reassignment failed');
+    }
+};
+
 exports.getCollectorBills = async (req, res) => {
     const { collectorId } = req.params;
     const { page = 1, limit = 10, searchTerm = "" } = req.query;
